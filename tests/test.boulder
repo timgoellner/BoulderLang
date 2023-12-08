@@ -1,1 +1,5 @@
-stop(37);
+set num = 16;
+set test = num;
+set test2 = 32;
+
+stop(test);

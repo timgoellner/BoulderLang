@@ -24,6 +24,10 @@ public class Lexer {
             tokens.add(new Token(TokenType.kwStop, null));
             buffer = "";
             break;
+          case "set":
+            tokens.add(new Token(TokenType.kwSet, null));
+            buffer = "";
+            break;
         }
 
         try {
@@ -32,6 +36,11 @@ public class Lexer {
           tokens.add(new Token(TokenType.integer, buffer));
           buffer = "";
         } catch (NumberFormatException error) {}
+
+        if (!buffer.isEmpty()) {
+          tokens.add(new Token(TokenType.identifier, buffer));
+          buffer = "";
+        }
       }
 
       switch (currChar) {
@@ -40,6 +49,9 @@ public class Lexer {
           break;
         case ')':
           tokens.add(new Token(TokenType.parenthesesClosed, null));
+          break;
+        case '=':
+          tokens.add(new Token(TokenType.equal, null));
           break;
         case ';':
           tokens.add(new Token(TokenType.semicolon, null));

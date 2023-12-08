@@ -3,10 +3,13 @@ package types;
 public interface Lexing {
   public enum TokenType {
     kwStop,
+    kwSet,
+    semicolon,
+    equal,
     parenthesesOpen,
     parenthesesClosed,
-    integer,
-    semicolon
+    identifier,
+    integer
   }
 
   public record Token(

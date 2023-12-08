@@ -5,8 +5,22 @@ import java.util.List;
 import types.Lexing.Token;
 
 public interface Parsing {
-  public record NodeExpression(
+  public record NodeInteger(
     Token integer
+  ) {}
+
+  public record NodeIdentifier(
+    Token identifier
+  ) {}
+
+  public record NodeExpression(
+    // NodeInteger || NodeIdentifier
+    Object object
+  ) {}
+
+  public record NodeStatementSet(
+    Token identifier,
+    NodeExpression expression
   ) {}
 
   public record NodeStatementStop(
@@ -14,7 +28,8 @@ public interface Parsing {
   ) {}
 
   public record NodeStatement(
-    Object statement
+    // NodeStatementSet || NodeStatementStop
+    Object object
   ) {} 
 
   public record NodeRoot(

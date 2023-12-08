@@ -9,6 +9,8 @@ import types.Parsing.NodeRoot;
 
 public class Main {
   public static void main(String args[]) {
+    args = new String[] { "tests/test.boulder" };
+
     if (args.length == 0 || !args[0].endsWith(".boulder")) {
       System.out.print("please provide a valid file (?.boulder)");
       return;

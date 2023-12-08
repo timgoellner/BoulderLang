@@ -13,12 +13,24 @@ public class Parser {
 
 
   private NodeExpression parseExpression() {
-    if (get() == null || get().type() != TokenType.integer) {
-      System.out.println("parsing: expected int");
+    if (get() == null) {
+      System.out.println("parsing: expected expression");
       System.exit(1);
     }
 
-    return new NodeExpression(consume());
+    Object nodeExpressionObject = null;
+    if (get().type() == TokenType.integer) {
+      nodeExpressionObject = new NodeInteger(consume());
+    } else if (get().type() == TokenType.identifier) {
+      nodeExpressionObject = new NodeIdentifier(consume());
+    } 
+    
+    if (nodeExpressionObject == null) {
+      System.out.println("parsing: expected term");
+      System.exit(1);
+    }
+
+    return new NodeExpression(nodeExpressionObject);
   }
 
   private NodeStatement parseStatement() {
@@ -48,6 +60,32 @@ public class Parser {
       NodeStatementStop nodeStatementStop = new NodeStatementStop(nodeExpression);
 
       return new NodeStatement(nodeStatementStop);
+    } else if (get().type() == TokenType.kwSet) {
+      consume();
+
+      if (get() == null || get().type() != TokenType.identifier) {
+        System.out.println("parsing: expected identifier");
+        System.exit(1);
+      }
+      Token identifier = consume();
+
+      if (get() == null || get().type() != TokenType.equal) {
+        System.out.println("parsing: expected equal sign");
+        System.exit(1);
+      }
+      consume();
+
+      NodeExpression nodeExpression = parseExpression();
+
+      if (get() == null || get().type() != TokenType.semicolon) {
+        System.out.println("parsing: expected ';'");
+        System.exit(1);
+      }
+      consume();
+
+      NodeStatementSet nodeStatementSet = new NodeStatementSet(identifier, nodeExpression);
+
+      return new NodeStatement(nodeStatementSet);
     }
 
     System.out.println("Invalid Statement");
