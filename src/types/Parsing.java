@@ -29,26 +29,6 @@ public interface Parsing {
     Object object
   ) {}
 
-  public record ExpressionAddition(
-    Expression expressionLeft,
-    Expression expressionRight
-  ) {}
-
-  public record ExpressionSubtraction(
-    Expression expressionLeft,
-    Expression expressionRight
-  ) {}
-
-  public record ExpressionMultiplication(
-    Expression expressionLeft,
-    Expression expressionRight
-  ) {}
-
-  public record ExpressionDivision(
-    Expression expressionLeft,
-    Expression expressionRight
-  ) {}
-
   public record ExpressionBinary(
     ExpressionBinaryType type,
     Expression expressionLeft,

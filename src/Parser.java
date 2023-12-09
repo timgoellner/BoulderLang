@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BinaryOperator;
 
 import types.Lexing.*;
 import types.Parsing.*;
@@ -45,9 +44,7 @@ public class Parser {
   }
 
   private Expression parseExpression(int minPrecedence) {
-    Term termLeft = parseTerm();
-
-    Expression expressionLeft = new Expression(termLeft);
+    Expression expressionLeft = new Expression(parseTerm());
 
     while (true) {
       Token currToken = get();
