@@ -8,6 +8,10 @@ public interface Lexing {
     equal,
     parenthesesOpen,
     parenthesesClosed,
+    plus,
+    minus,
+    asterisk,
+    slash,
     identifier,
     integer
   }

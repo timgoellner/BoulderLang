@@ -5,7 +5,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 import types.Lexing.Token;
-import types.Parsing.NodeRoot;
+import types.Parsing.Root;
 
 public class Main {
   public static void main(String args[]) {
@@ -28,7 +28,7 @@ public class Main {
     List<Token> tokens = lexer.tokenize();
 
     Parser parser = new Parser(tokens);
-    NodeRoot nodeRoot = parser.parse();
+    Root nodeRoot = parser.parse();
 
     Generator generator = new Generator(nodeRoot);
     String output = generator.generate();

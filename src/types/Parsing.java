@@ -5,47 +5,81 @@ import java.util.List;
 import types.Lexing.Token;
 
 public interface Parsing {
-  public record NodeInteger(
+  public enum ExpressionBinaryType {
+    addition,
+    subtraction,
+    multiplication,
+    division
+  }
+
+  public record IntegerLiteral(
     Token integer
   ) {}
 
-  public record NodeIdentifier(
+  public record Identifier(
     Token identifier
   ) {}
 
-  public record NodeParentheses(
-    NodeExpression expression
+  public record Parentheses(
+    Expression expression
   ) {}
 
-  public record NodeTerm(
-    // NodeInteger || NodeIdentifier || NodeParentheses
+  public record Term(
+    // IntegerLiteral || Identifier || Parentheses
     Object object
   ) {}
 
-  public record NodeExpression(
-    NodeTerm term
+  public record ExpressionAddition(
+    Expression expressionLeft,
+    Expression expressionRight
   ) {}
 
-  public record NodeStatementAssignment(
+  public record ExpressionSubtraction(
+    Expression expressionLeft,
+    Expression expressionRight
+  ) {}
+
+  public record ExpressionMultiplication(
+    Expression expressionLeft,
+    Expression expressionRight
+  ) {}
+
+  public record ExpressionDivision(
+    Expression expressionLeft,
+    Expression expressionRight
+  ) {}
+
+  public record ExpressionBinary(
+    ExpressionBinaryType type,
+    Expression expressionLeft,
+    Expression expressionRight
+  ) {}
+
+  public record Expression(
+    // Term || ExpressionBinary
+    Object object
+  ) {}
+
+  public record StatementAssignment(
     Token identifier,
-    NodeExpression expression
+    Expression expression
   ) {}
 
-  public record NodeStatementSet(
+  public record StatementSet(
     Token identifier,
-    NodeExpression expression
+    Expression expression
   ) {}
 
-  public record NodeStatementStop(
-    NodeExpression expression
+  public record StatementStop(
+    Expression expression
   ) {}
 
-  public record NodeStatement(
-    // NodeStatementSet || NodeStatementStop
+  public record Statement(
+    // StatementSet || StatementStop
     Object object
   ) {} 
 
-  public record NodeRoot(
-    List<NodeStatement> statements
+  public record Root(
+    List<Statement> statements
   ) {} 
 }

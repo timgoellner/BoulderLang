@@ -56,6 +56,18 @@ public class Lexer {
         case ';':
           tokens.add(new Token(TokenType.semicolon, null));
           break;
+        case '+':
+          tokens.add(new Token(TokenType.plus, null));
+          break;
+        case '-':
+          tokens.add(new Token(TokenType.minus, null));
+          break;
+        case '*':
+          tokens.add(new Token(TokenType.asterisk, null));
+          break;
+        case '/':
+          tokens.add(new Token(TokenType.slash, null));
+          break;
       }
     }
 

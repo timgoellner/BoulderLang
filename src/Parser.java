@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BinaryOperator;
 
 import types.Lexing.*;
 import types.Parsing.*;
@@ -12,16 +13,21 @@ public class Parser {
   }
 
 
-  private NodeTerm parseTerm() {
-    Object nodeTermObject = null;
+  private Term parseTerm() {
+    if (get() == null) {
+      System.out.println("parsing: expected expression");
+      System.exit(1);
+    }
+
+    Object TermObject = null;
 
     if (get().type() == TokenType.integer) {
-      nodeTermObject = new NodeInteger(consume());
+      TermObject = new IntegerLiteral(consume());
     } else if (get().type() == TokenType.identifier) {
-      nodeTermObject = new NodeIdentifier(consume());
+      TermObject = new Identifier(consume());
     } else if (get().type() == TokenType.parenthesesOpen) {
       consume();
-      nodeTermObject = new NodeParentheses(parseExpression());
+      TermObject = new Parentheses(parseExpression(1));
 
       if (!(get().type() == TokenType.parenthesesClosed) || get() == null) {
         System.out.println("parsing: expected ')'");
@@ -30,24 +36,46 @@ public class Parser {
       consume();
     }
     
-    if (nodeTermObject == null) {
+    if (TermObject == null) {
       System.out.println("parsing: expected term");
       System.exit(1);
     }
 
-    return new NodeTerm(nodeTermObject);
+    return new Term(TermObject);
   }
 
-  private NodeExpression parseExpression() {
-    if (get() == null) {
-      System.out.println("parsing: expected expression");
-      System.exit(1);
+  private Expression parseExpression(int minPrecedence) {
+    Term termLeft = parseTerm();
+
+    Expression expressionLeft = new Expression(termLeft);
+
+    while (true) {
+      Token currToken = get();
+      if (currToken == null || getPrecedence(currToken.type()) < minPrecedence) break;
+
+      TokenType opertator = consume().type();
+      int nextMinPrecedence = getPrecedence(opertator) + 1;
+
+      Expression expressionRight = parseExpression(nextMinPrecedence);
+
+      ExpressionBinary expressionBinary = null;
+      if (opertator == TokenType.plus) {
+        expressionBinary = new ExpressionBinary(ExpressionBinaryType.addition, expressionLeft, expressionRight);
+      } else if (opertator == TokenType.minus) {
+        expressionBinary = new ExpressionBinary(ExpressionBinaryType.subtraction, expressionLeft, expressionRight);
+      } else  if (opertator == TokenType.asterisk) {
+        expressionBinary = new ExpressionBinary(ExpressionBinaryType.multiplication, expressionLeft, expressionRight);
+      } else  if (opertator == TokenType.slash) {
+        expressionBinary = new ExpressionBinary(ExpressionBinaryType.division, expressionLeft, expressionRight);
+      }
+
+      expressionLeft = new Expression(expressionBinary);
     }
 
-    return new NodeExpression(parseTerm());
+    return expressionLeft;
   }
 
-  private NodeStatement parseStatement() {
+  private Statement parseStatement() {
     if (get().type() == TokenType.kwStop) {
       consume();
 
@@ -57,7 +85,7 @@ public class Parser {
       }
       consume();
 
-      NodeExpression nodeExpression = parseExpression();
+      Expression Expression = parseExpression(1);
 
       if (get() == null || get().type() != TokenType.parenthesesClosed) {
         System.out.println("parsing: expected ')'");
@@ -71,9 +99,9 @@ public class Parser {
       }
       consume();
 
-      NodeStatementStop nodeStatementStop = new NodeStatementStop(nodeExpression);
+      StatementStop StatementStop = new StatementStop(Expression);
 
-      return new NodeStatement(nodeStatementStop);
+      return new Statement(StatementStop);
     } else if (get().type() == TokenType.kwSet) {
       consume();
 
@@ -89,7 +117,7 @@ public class Parser {
       }
       consume();
 
-      NodeExpression nodeExpression = parseExpression();
+      Expression Expression = parseExpression(1);
 
       if (get() == null || get().type() != TokenType.semicolon) {
         System.out.println("parsing: expected ';'");
@@ -97,9 +125,9 @@ public class Parser {
       }
       consume();
 
-      NodeStatementSet nodeStatementSet = new NodeStatementSet(identifier, nodeExpression);
+      StatementSet StatementSet = new StatementSet(identifier, Expression);
 
-      return new NodeStatement(nodeStatementSet);
+      return new Statement(StatementSet);
     } else if (get().type() == TokenType.identifier) {
       Token identifier = consume();
 
@@ -109,7 +137,7 @@ public class Parser {
       }
       consume();
 
-      NodeExpression nodeExpression = parseExpression();
+      Expression Expression = parseExpression(1);
 
       if (get() == null || get().type() != TokenType.semicolon) {
         System.out.println("parsing: expected ';'");
@@ -117,25 +145,25 @@ public class Parser {
       }
       consume();
 
-      NodeStatementAssignment nodeStatementAssignment = new NodeStatementAssignment(identifier, nodeExpression);
+      StatementAssignment StatementAssignment = new StatementAssignment(identifier, Expression);
 
-      return new NodeStatement(nodeStatementAssignment);
+      return new Statement(StatementAssignment);
     }
 
     System.out.println("parsing: invalid statement");
     return null;
   }
 
-  public NodeRoot parse() {
-    List<NodeStatement> statements = new ArrayList<NodeStatement>();
+  public Root parse() {
+    List<Statement> statements = new ArrayList<Statement>();
     
     while (tokens.size() > 0) {
-      NodeStatement statement = parseStatement();
+      Statement statement = parseStatement();
       if (statement == null) System.exit(1);
       statements.add(statement);
     }
 
-    return new NodeRoot(statements);
+    return new Root(statements);
   }
 
 
@@ -146,5 +174,18 @@ public class Parser {
 
   private Token consume() {
     return tokens.remove(0);
+  }
+
+  private int getPrecedence(TokenType tokenType) {
+    switch (tokenType) {
+      case plus:
+      case minus:
+        return 1;
+      case asterisk:
+      case slash:
+        return 2;
+      default:
+        return 0;
+    }
   }
 }
