@@ -1,5 +1,6 @@
-set num = 16;
+set num = 23;
 set test = num;
-set test2 = 32;
+
+test = 30;
 
 stop(test);

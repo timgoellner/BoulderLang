@@ -1,21 +1,21 @@
-import java.util.ArrayList;
-import java.util.List;
-
 import types.Parsing.*;
-import types.Generating.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Generator {
   private NodeRoot nodeRoot;
   private String output;
 
   private int stackSize;
-  private List<Variable> variables;
+  //          name  , stackLocation
+  private Map<String, Integer> variables;
 
   public Generator(NodeRoot nodeRoot) {
     this.nodeRoot = nodeRoot;
     this.output = "global _start\n_start:\n";
 
-    this.variables = new ArrayList<Variable>();
+    this.variables = new HashMap<String, Integer>();
   }
 
 
@@ -35,19 +35,14 @@ public class Generator {
       output += "    mov rax, " + ((NodeInteger) nodeExpression.object()).integer().value() + "\n";
       push("rax");
     } else if (nodeExpression.object().getClass() == NodeIdentifier.class) {
-      Variable variable = null;
-      for (Variable testVariable : variables) {
-        if (variable != null) break;
-        if (testVariable.name().matches(((NodeIdentifier) nodeExpression.object()).identifier().value())) variable = testVariable;
-      }
+      Object variableLocation = variables.get(((NodeIdentifier) nodeExpression.object()).identifier().value());
 
-      if (variable == null) {
+      if (variableLocation == null) {
         System.out.println("generation: undeclared variable");
         System.exit(1);
       }
 
-      String offset = "QWORD [rsp + " + ((stackSize - variable.stackLocation() - 1) * 8) + "]";
-      push(offset);
+      push("QWORD [rsp + " + ((stackSize - ((Integer) variableLocation) - 1) * 8) + "]");
     }
   }
 
@@ -60,8 +55,23 @@ public class Generator {
     } else if (nodeStatement.object().getClass() == NodeStatementSet.class) {
       NodeStatementSet nodeStatementSet = (NodeStatementSet) nodeStatement.object();
 
-      variables.add(new Variable(nodeStatementSet.identifier().value(), stackSize));
+      if (variables.containsKey(nodeStatementSet.identifier().value())) {
+        System.out.println("generation: variable already declared");
+        System.exit(1);
+      }
+
+      variables.put(nodeStatementSet.identifier().value(), stackSize);
       generateExpression(nodeStatementSet.expression());
+    } else if (nodeStatement.object().getClass() == NodeStatementAssignment.class) {
+      NodeStatementAssignment nodeStatementAssignment = (NodeStatementAssignment) nodeStatement.object();
+
+      if (!variables.containsKey(nodeStatementAssignment.identifier().value())) {
+        System.out.println("generation: undeclared variable");
+        System.exit(1);
+      }
+
+      variables.put(nodeStatementAssignment.identifier().value(), stackSize);
+      generateExpression(nodeStatementAssignment.expression());
     }
   }
 

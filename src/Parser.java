@@ -86,6 +86,26 @@ public class Parser {
       NodeStatementSet nodeStatementSet = new NodeStatementSet(identifier, nodeExpression);
 
       return new NodeStatement(nodeStatementSet);
+    } else if (get().type() == TokenType.identifier) {
+      Token identifier = consume();
+
+      if (get() == null || get().type() != TokenType.equal) {
+        System.out.println("parsing: expected equal sign");
+        System.exit(1);
+      }
+      consume();
+
+      NodeExpression nodeExpression = parseExpression();
+
+      if (get() == null || get().type() != TokenType.semicolon) {
+        System.out.println("parsing: expected ';'");
+        System.exit(1);
+      }
+      consume();
+
+      NodeStatementAssignment nodeStatementAssignment = new NodeStatementAssignment(identifier, nodeExpression);
+
+      return new NodeStatement(nodeStatementAssignment);
     }
 
     System.out.println("Invalid Statement");

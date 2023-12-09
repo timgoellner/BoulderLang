@@ -18,6 +18,11 @@ public interface Parsing {
     Object object
   ) {}
 
+  public record NodeStatementAssignment(
+    Token identifier,
+    NodeExpression expression
+  ) {}
+
   public record NodeStatementSet(
     Token identifier,
     NodeExpression expression
