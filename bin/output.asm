@@ -3,7 +3,7 @@ _start:
     mov rax, 23
     push rax
     push QWORD [rsp + 0]
-    mov rax, 30
+    mov rax, 13
     push rax
     push QWORD [rsp + 0]
     mov rax, 60

@@ -13,9 +13,17 @@ public interface Parsing {
     Token identifier
   ) {}
 
-  public record NodeExpression(
-    // NodeInteger || NodeIdentifier
+  public record NodeParentheses(
+    NodeExpression expression
+  ) {}
+
+  public record NodeTerm(
+    // NodeInteger || NodeIdentifier || NodeParentheses
     Object object
+  ) {}
+
+  public record NodeExpression(
+    NodeTerm term
   ) {}
 
   public record NodeStatementAssignment(

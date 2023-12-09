@@ -30,12 +30,12 @@ public class Generator {
   }
 
 
-  private void generateExpression(NodeExpression nodeExpression) {
-    if (nodeExpression.object().getClass() == NodeInteger.class) {
-      output += "    mov rax, " + ((NodeInteger) nodeExpression.object()).integer().value() + "\n";
+  private void generateTerm(NodeTerm nodeTerm) {
+    if (nodeTerm.object().getClass() == NodeInteger.class) {
+      output += "    mov rax, " + ((NodeInteger) nodeTerm.object()).integer().value() + "\n";
       push("rax");
-    } else if (nodeExpression.object().getClass() == NodeIdentifier.class) {
-      Object variableLocation = variables.get(((NodeIdentifier) nodeExpression.object()).identifier().value());
+    } else if (nodeTerm.object().getClass() == NodeIdentifier.class) {
+      Object variableLocation = variables.get(((NodeIdentifier) nodeTerm.object()).identifier().value());
 
       if (variableLocation == null) {
         System.out.println("generation: undeclared variable");
@@ -43,7 +43,13 @@ public class Generator {
       }
 
       push("QWORD [rsp + " + ((stackSize - ((Integer) variableLocation) - 1) * 8) + "]");
+    } else if (nodeTerm.object().getClass() == NodeParentheses.class) {
+      generateExpression(((NodeParentheses) nodeTerm.object()).expression());
     }
+  }
+
+  private void generateExpression(NodeExpression nodeExpression) {
+    generateTerm(nodeExpression.term());
   }
 
   private void generateStatement(NodeStatement nodeStatement) {

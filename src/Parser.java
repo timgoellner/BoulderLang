@@ -12,25 +12,39 @@ public class Parser {
   }
 
 
+  private NodeTerm parseTerm() {
+    Object nodeTermObject = null;
+
+    if (get().type() == TokenType.integer) {
+      nodeTermObject = new NodeInteger(consume());
+    } else if (get().type() == TokenType.identifier) {
+      nodeTermObject = new NodeIdentifier(consume());
+    } else if (get().type() == TokenType.parenthesesOpen) {
+      consume();
+      nodeTermObject = new NodeParentheses(parseExpression());
+
+      if (!(get().type() == TokenType.parenthesesClosed) || get() == null) {
+        System.out.println("parsing: expected ')'");
+        System.exit(1);
+      }
+      consume();
+    }
+    
+    if (nodeTermObject == null) {
+      System.out.println("parsing: expected term");
+      System.exit(1);
+    }
+
+    return new NodeTerm(nodeTermObject);
+  }
+
   private NodeExpression parseExpression() {
     if (get() == null) {
       System.out.println("parsing: expected expression");
       System.exit(1);
     }
 
-    Object nodeExpressionObject = null;
-    if (get().type() == TokenType.integer) {
-      nodeExpressionObject = new NodeInteger(consume());
-    } else if (get().type() == TokenType.identifier) {
-      nodeExpressionObject = new NodeIdentifier(consume());
-    } 
-    
-    if (nodeExpressionObject == null) {
-      System.out.println("parsing: expected term");
-      System.exit(1);
-    }
-
-    return new NodeExpression(nodeExpressionObject);
+    return new NodeExpression(parseTerm());
   }
 
   private NodeStatement parseStatement() {
@@ -108,7 +122,7 @@ public class Parser {
       return new NodeStatement(nodeStatementAssignment);
     }
 
-    System.out.println("Invalid Statement");
+    System.out.println("parsing: invalid statement");
     return null;
   }
 

@@ -1,6 +1,6 @@
 set num = 23;
 set test = num;
 
-test = 30;
+test = (13);
 
 stop(test);
