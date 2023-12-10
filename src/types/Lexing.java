@@ -4,16 +4,20 @@ public interface Lexing {
   public enum TokenType {
     kwStop,
     kwSet,
+
+    integer,
+    identifier,
+
     semicolon,
     equal,
     parenthesesOpen,
     parenthesesClosed,
+    curlyBracketOpen,
+    curlyBracketClosed,
     plus,
     minus,
     asterisk,
-    slash,
-    identifier,
-    integer
+    slash
   }
 
   public record Token(

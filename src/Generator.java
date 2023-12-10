@@ -1,21 +1,28 @@
 import types.Parsing.*;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Stack;
+import java.util.Map.Entry;
+import java.util.Iterator;
 
 public class Generator {
   private Root root;
   private String output;
 
   private int stackSize;
-  //          name  , stackLocation
+  //          name  , stack location
   private Map<String, Integer> variables;
+  //            initial variables
+  private Stack<Integer> scopes;
 
   public Generator(Root root) {
     this.root = root;
     this.output = "global _start\n_start:\n";
 
-    this.variables = new HashMap<String, Integer>();
+    this.variables = new LinkedHashMap<String, Integer>();
+    this.scopes = new Stack<Integer>();
   }
 
 
@@ -61,7 +68,24 @@ public class Generator {
   }
 
   private void generateStatement(Statement statement) {
-    if (statement.object().getClass() == StatementStop.class) {
+    if (statement.object().getClass() == Scope.class) {
+      scopes.push(variables.size());
+
+      for (Statement childStatement : ((Scope) statement.object()).statements()) generateStatement(childStatement);
+
+      int popCount = variables.size() - scopes.lastElement();
+
+      output += "    add rsp, " + popCount * 8 + "\n";
+      stackSize -= popCount;
+
+      Iterator<Entry<String, Integer>> iterator = variables.entrySet().iterator();
+      // Iterates to the point where we want to remove variables
+      for (int i = 0; i < scopes.lastElement(); i++) iterator.next();
+      // Remove the variables left in the LinkedHashMap
+      for (int i = 0; i < popCount; i++) variables.remove(iterator.next().getKey());
+
+      scopes.pop();      
+    } else if (statement.object().getClass() == StatementStop.class) {
       generateExpression(((StatementStop) statement.object()).expression());
       output += "    mov rax, 60\n";
       pop("rdi");

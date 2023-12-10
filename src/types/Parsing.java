@@ -55,9 +55,13 @@ public interface Parsing {
   ) {}
 
   public record Statement(
-    // StatementSet || StatementStop
+    // StatementSet || StatementStop || StatementAssignment || Scope
     Object object
-  ) {} 
+  ) {}
+
+  public record Scope(
+    List<Statement> statements
+  ) {}
 
   public record Root(
     List<Statement> statements

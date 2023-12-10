@@ -18,29 +18,29 @@ public class Parser {
       System.exit(1);
     }
 
-    Object TermObject = null;
+    Object termObject = null;
 
     if (get().type() == TokenType.integer) {
-      TermObject = new IntegerLiteral(consume());
+      termObject = new IntegerLiteral(consume());
     } else if (get().type() == TokenType.identifier) {
-      TermObject = new Identifier(consume());
+      termObject = new Identifier(consume());
     } else if (get().type() == TokenType.parenthesesOpen) {
       consume();
-      TermObject = new Parentheses(parseExpression(1));
+      termObject = new Parentheses(parseExpression(1));
 
-      if (!(get().type() == TokenType.parenthesesClosed) || get() == null) {
+      if (get() == null || get().type() != TokenType.parenthesesClosed) {
         System.out.println("parsing: expected ')'");
         System.exit(1);
       }
       consume();
     }
     
-    if (TermObject == null) {
+    if (termObject == null) {
       System.out.println("parsing: expected term");
       System.exit(1);
     }
 
-    return new Term(TermObject);
+    return new Term(termObject);
   }
 
   private Expression parseExpression(int minPrecedence) {
@@ -73,7 +73,23 @@ public class Parser {
   }
 
   private Statement parseStatement() {
-    if (get().type() == TokenType.kwStop) {
+    if (get().type() == TokenType.curlyBracketOpen) {
+      consume();
+
+      List<Statement> statements = new ArrayList<Statement>();
+      Statement statement;
+      while ((statement = parseStatement()) != null) statements.add(statement);
+
+      if (get() == null || get().type() != TokenType.curlyBracketClosed) {
+        System.out.println("parsing: expected '}'");
+        System.exit(1);
+      }
+      consume();
+
+      Scope scope = new Scope(statements);
+
+      return new Statement(scope);
+    } else if (get().type() == TokenType.kwStop) {
       consume();
 
       if (get() == null || get().type() != TokenType.parenthesesOpen) {
@@ -147,7 +163,6 @@ public class Parser {
       return new Statement(StatementAssignment);
     }
 
-    System.out.println("parsing: invalid statement");
     return null;
   }
 
@@ -156,7 +171,10 @@ public class Parser {
     
     while (tokens.size() > 0) {
       Statement statement = parseStatement();
-      if (statement == null) System.exit(1);
+      if (statement == null) {
+        System.out.println("parsing: invalid statement");
+        System.exit(1);
+      }
       statements.add(statement);
     }
 

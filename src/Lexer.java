@@ -44,17 +44,23 @@ public class Lexer {
       }
 
       switch (currChar) {
+        case ';':
+          tokens.add(new Token(TokenType.semicolon, null));
+          break;
+        case '=':
+          tokens.add(new Token(TokenType.equal, null));
+          break;
         case '(':
           tokens.add(new Token(TokenType.parenthesesOpen, null));
           break;
         case ')':
           tokens.add(new Token(TokenType.parenthesesClosed, null));
           break;
-        case '=':
-          tokens.add(new Token(TokenType.equal, null));
+        case '{':
+          tokens.add(new Token(TokenType.curlyBracketOpen, null));
           break;
-        case ';':
-          tokens.add(new Token(TokenType.semicolon, null));
+        case '}':
+          tokens.add(new Token(TokenType.curlyBracketClosed, null));
           break;
         case '+':
           tokens.add(new Token(TokenType.plus, null));
