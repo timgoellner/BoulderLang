@@ -1,6 +1,5 @@
 import types.Parsing.*;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -98,7 +97,11 @@ public class Generator {
         System.exit(1);
       }
 
-      generateExpression(statementSet.expression());
+      if (statementSet.expression() == null) {
+        output += "    mov rax, 0\n";
+        push("rax");
+      } else generateExpression(statementSet.expression());
+      
       variables.put(statementSet.identifier().value(), stackSize);
     } else if (statement.object().getClass() == StatementAssignment.class) {
       StatementAssignment statementAssignment = (StatementAssignment) statement.object();

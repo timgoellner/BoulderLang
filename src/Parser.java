@@ -98,7 +98,7 @@ public class Parser {
       }
       consume();
 
-      Expression Expression = parseExpression(1);
+      Expression expression = parseExpression(1);
 
       if (get() == null || get().type() != TokenType.parenthesesClosed) {
         System.out.println("parsing: expected ')'");
@@ -112,9 +112,9 @@ public class Parser {
       }
       consume();
 
-      StatementStop StatementStop = new StatementStop(Expression);
+      StatementStop statementStop = new StatementStop(expression);
 
-      return new Statement(StatementStop);
+      return new Statement(statementStop);
     } else if (get().type() == TokenType.kwSet) {
       consume();
 
@@ -124,13 +124,19 @@ public class Parser {
       }
       Token identifier = consume();
 
+      if (get()!= null && get().type() == TokenType.semicolon) {
+        consume();
+        StatementSet statementSet = new StatementSet(identifier, null);
+        return new Statement(statementSet);
+      }
+
       if (get() == null || get().type() != TokenType.equal) {
         System.out.println("parsing: expected equal sign");
         System.exit(1);
       }
       consume();
 
-      Expression Expression = parseExpression(1);
+      Expression expression = parseExpression(1);
 
       if (get() == null || get().type() != TokenType.semicolon) {
         System.out.println("parsing: expected ';'");
@@ -138,9 +144,9 @@ public class Parser {
       }
       consume();
 
-      StatementSet StatementSet = new StatementSet(identifier, Expression);
+      StatementSet statementSet = new StatementSet(identifier, expression);
 
-      return new Statement(StatementSet);
+      return new Statement(statementSet);
     } else if (get().type() == TokenType.identifier) {
       Token identifier = consume();
 
@@ -150,7 +156,7 @@ public class Parser {
       }
       consume();
 
-      Expression Expression = parseExpression(1);
+      Expression expression = parseExpression(1);
 
       if (get() == null || get().type() != TokenType.semicolon) {
         System.out.println("parsing: expected ';'");
@@ -158,9 +164,9 @@ public class Parser {
       }
       consume();
 
-      StatementAssignment StatementAssignment = new StatementAssignment(identifier, Expression);
+      StatementAssignment statementAssignment = new StatementAssignment(identifier, expression);
 
-      return new Statement(StatementAssignment);
+      return new Statement(statementAssignment);
     }
 
     return null;
