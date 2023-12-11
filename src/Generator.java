@@ -26,11 +26,11 @@ public class Generator {
 
 
   private void generateTerm(Term term) {
-    if (term.object().getClass() == IntegerLiteral.class) {
-      output += "    mov rax, " + ((IntegerLiteral) term.object()).integer().value() + "\n";
+    if (term.object() instanceof IntegerLiteral integerLiteral) {
+      output += "    mov rax, " + integerLiteral.integer().value() + "\n";
       push("rax");
-    } else if (term.object().getClass() == Identifier.class) {
-      Object variableLocation = variables.get(((Identifier) term.object()).identifier().value());
+    } else if (term.object() instanceof Identifier identifier) {
+      Object variableLocation = variables.get(identifier.identifier().value());
 
       if (variableLocation == null) {
         System.out.println("generation: undeclared variable");
@@ -38,8 +38,8 @@ public class Generator {
       }
 
       push("QWORD [rsp + " + ((stackSize - ((Integer) variableLocation)) * 8) + "]");
-    } else if (term.object().getClass() == Parentheses.class) {
-      generateExpression(((Parentheses) term.object()).expression());
+    } else if (term.object() instanceof Parentheses parentheses) {
+      generateExpression(parentheses.expression());
     }
   }
 
@@ -59,18 +59,18 @@ public class Generator {
   }
 
   private void generateExpression(Expression expression) {
-    if (expression.object().getClass() == Term.class) {
-      generateTerm((Term) expression.object());
-    } else if (expression.object().getClass() == ExpressionBinary.class) {
-      generateExpressionBinary((ExpressionBinary) expression.object());
+    if (expression.object() instanceof Term term) {
+      generateTerm(term);
+    } else if (expression.object() instanceof ExpressionBinary expressionBinary) {
+      generateExpressionBinary(expressionBinary);
     }
   }
 
   private void generateStatement(Statement statement) {
-    if (statement.object().getClass() == Scope.class) {
+    if (statement.object() instanceof Scope scope) {
       scopes.push(variables.size());
 
-      for (Statement childStatement : ((Scope) statement.object()).statements()) generateStatement(childStatement);
+      for (Statement childStatement : scope.statements()) generateStatement(childStatement);
 
       int popCount = variables.size() - scopes.lastElement();
 
@@ -83,15 +83,13 @@ public class Generator {
       // Remove the variables left in the LinkedHashMap
       for (int i = 0; i < popCount; i++) variables.remove(iterator.next().getKey());
 
-      scopes.pop();      
-    } else if (statement.object().getClass() == StatementStop.class) {
-      generateExpression(((StatementStop) statement.object()).expression());
+      scopes.pop();
+    } else if (statement.object() instanceof StatementStop statementStop) {
+      generateExpression(statementStop.expression());
       output += "    mov rax, 60\n";
       pop("rdi");
       output += "    syscall\n";
-    } else if (statement.object().getClass() == StatementSet.class) {
-      StatementSet statementSet = (StatementSet) statement.object();
-
+    } else if (statement.object() instanceof StatementSet statementSet) {
       if (variables.containsKey(statementSet.identifier().value())) {
         System.out.println("generation: variable already declared");
         System.exit(1);
@@ -101,11 +99,9 @@ public class Generator {
         output += "    mov rax, 0\n";
         push("rax");
       } else generateExpression(statementSet.expression());
-      
-      variables.put(statementSet.identifier().value(), stackSize);
-    } else if (statement.object().getClass() == StatementAssignment.class) {
-      StatementAssignment statementAssignment = (StatementAssignment) statement.object();
 
+      variables.put(statementSet.identifier().value(), stackSize);
+    } else if (statement.object() instanceof StatementAssignment statementAssignment) {
       if (!variables.containsKey(statementAssignment.identifier().value())) {
         System.out.println("generation: undeclared variable");
         System.exit(1);
