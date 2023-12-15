@@ -33,6 +33,17 @@ public class Parser {
         System.exit(1);
       }
       consume();
+    } else if (get().type() == TokenType.minus) {
+      consume();
+
+      IntegerLiteral zeroIntegerLiteral = new IntegerLiteral(new Token(TokenType.integer, "0"));
+      Term zeroTerm = new Term(zeroIntegerLiteral);
+      Expression zeroExpression = new Expression(zeroTerm);
+
+      ExpressionBinary expressionBinary = new ExpressionBinary(ExpressionBinaryType.subtraction, zeroExpression, parseExpression(1));
+      Expression expression = new Expression(expressionBinary);
+      
+      termObject = new Parentheses(expression);
     }
     
     if (termObject == null) {
@@ -60,9 +71,9 @@ public class Parser {
         expressionBinary = new ExpressionBinary(ExpressionBinaryType.addition, expressionLeft, expressionRight);
       } else if (opertator == TokenType.minus) {
         expressionBinary = new ExpressionBinary(ExpressionBinaryType.subtraction, expressionLeft, expressionRight);
-      } else  if (opertator == TokenType.asterisk) {
+      } else if (opertator == TokenType.asterisk) {
         expressionBinary = new ExpressionBinary(ExpressionBinaryType.multiplication, expressionLeft, expressionRight);
-      } else  if (opertator == TokenType.slash) {
+      } else if (opertator == TokenType.slash) {
         expressionBinary = new ExpressionBinary(ExpressionBinaryType.division, expressionLeft, expressionRight);
       }
 

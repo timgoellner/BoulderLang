@@ -31,6 +31,12 @@ _start:
     push rax
     mov rax, 3
     push rax
+    mov rax, 0
+    push rax
+    pop rax
+    pop rbx
+    sub rax, rbx
+    push rax
     add rsp, 0
     push QWORD [rsp + 0]
     push QWORD [rsp + 24]
