@@ -61,7 +61,22 @@ l1False:
 l1End:
     push rax
     add rsp, 0
-    push QWORD [rsp + 0]
+    mov rax, 0
+    push rax
+    push QWORD [rsp + 8]
+    pop rax
+    pop rbx
+    and rax, rbx
+    cmp rax, 1
+    je l2True
+    jmp l2False
+l2True:
+    mov rax, 1
+    jmp l2End
+l2False:
+    mov rax, 0
+l2End:
+    push rax
     mov rax, 60
     pop rdi
     syscall
