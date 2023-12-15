@@ -6,10 +6,21 @@ public interface Lexing {
     kwSet,
 
     integer,
+    bool,
     identifier,
 
-    semicolon,
     equal,
+    notEqual,
+    less,
+    lessEqual,
+    greater,
+    greaterEqual,
+    
+    and,
+    or,
+
+    semicolon,
+    assign,
     parenthesesOpen,
     parenthesesClosed,
     curlyBracketOpen,

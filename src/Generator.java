@@ -10,6 +10,7 @@ public class Generator {
   private Root root;
   private String output;
 
+  private int currLabel;
   private int stackSize;
   //          name  , stack location
   private Map<String, Integer> variables;
@@ -18,7 +19,7 @@ public class Generator {
 
   public Generator(Root root) {
     this.root = root;
-    this.output = "global _start\n_start:\n";
+    this.output = "section .text\n    global _start\n_start:\n";
 
     this.variables = new LinkedHashMap<String, Integer>();
     this.scopes = new Stack<Integer>();
@@ -28,6 +29,9 @@ public class Generator {
   private void generateTerm(Term term) {
     if (term.object() instanceof IntegerLiteral integerLiteral) {
       output += "    mov rax, " + integerLiteral.integer().value() + "\n";
+      push("rax");
+    } else if (term.object() instanceof BooleanLiteral booleanLiteral) {
+      output += "    mov rax, " + ((booleanLiteral.bool().value() == "true") ? "1" : "0") + "\n";
       push("rax");
     } else if (term.object() instanceof Identifier identifier) {
       Object variableLocation = variables.get(identifier.identifier().value());
@@ -54,6 +58,37 @@ public class Generator {
     else if (expressionBinary.type() == ExpressionBinaryType.subtraction) output += "    sub rax, rbx\n";
     else if (expressionBinary.type() == ExpressionBinaryType.multiplication) output += "    mul rbx\n";
     else if (expressionBinary.type() == ExpressionBinaryType.division) output += "    div rbx\n";
+    else {
+      if (expressionBinary.type() == ExpressionBinaryType.and || expressionBinary.type() == ExpressionBinaryType.or) {
+        if (expressionBinary.type() == ExpressionBinaryType.and) output += "    and rax, rbx\n";
+        else output += "    or rax, rbx\n";
+
+        output += "    cmp rax, 1\n";
+        output += "    je l" + currLabel + "True\n";
+      } else {
+        output += "    cmp rax, rbx\n";
+
+        if (expressionBinary.type() == ExpressionBinaryType.equal) output += "    je l" + currLabel + "True\n";
+        else if (expressionBinary.type() == ExpressionBinaryType.notEqual) output += "    jne l" + currLabel + "True\n";
+        else if (expressionBinary.type() == ExpressionBinaryType.less) output += "    jl l" + currLabel + "True\n";
+        else if (expressionBinary.type() == ExpressionBinaryType.lessEqual) output += "    jle l" + currLabel + "True\n";
+        else if (expressionBinary.type() == ExpressionBinaryType.greater) output += "    jg l" + currLabel + "True\n";
+        else if (expressionBinary.type() == ExpressionBinaryType.greaterEqual) output += "    jge l" + currLabel + "True\n";
+      }
+
+      output += "    jmp l" + currLabel + "False\n";
+
+      output += "l" + currLabel + "True:\n";
+      output += "    mov rax, 1\n";
+      output += "    jmp l" + currLabel + "End\n";
+
+      output += "l" + currLabel + "False:\n";
+      output += "    mov rax, 0\n";
+
+      output += "l" + currLabel + "End:\n";
+
+      currLabel++;
+    }
 
     push("rax");
   }
@@ -78,9 +113,7 @@ public class Generator {
       stackSize -= popCount;
 
       Iterator<Entry<String, Integer>> iterator = variables.entrySet().iterator();
-      // Iterates to the point where we want to remove variables
       for (int i = 0; i < scopes.lastElement(); i++) iterator.next();
-      // Remove the variables left in the LinkedHashMap
       for (int i = 0; i < popCount; i++) variables.remove(iterator.next().getKey());
 
       scopes.pop();

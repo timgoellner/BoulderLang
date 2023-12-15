@@ -9,11 +9,25 @@ public interface Parsing {
     addition,
     subtraction,
     multiplication,
-    division
+    division,
+
+    equal,
+    notEqual,
+    less,
+    lessEqual,
+    greater,
+    greaterEqual,
+    
+    and,
+    or
   }
 
   public record IntegerLiteral(
     Token integer
+  ) {}
+
+  public record BooleanLiteral(
+    Token bool
   ) {}
 
   public record Identifier(
@@ -25,7 +39,7 @@ public interface Parsing {
   ) {}
 
   public record Term(
-    // IntegerLiteral || Identifier || Parentheses
+    // IntegerLiteral || Boolean || Identifier || Parentheses
     Object object
   ) {}
 

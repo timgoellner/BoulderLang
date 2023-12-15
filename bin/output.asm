@@ -1,4 +1,5 @@
-global _start
+section .text
+    global _start
 _start:
     mov rax, 3
     push rax
@@ -29,21 +30,38 @@ _start:
     push rax
     mov rax, 0
     push rax
-    mov rax, 3
-    push rax
     mov rax, 0
     push rax
-    pop rax
-    pop rbx
-    sub rax, rbx
+    mov rax, 12
     push rax
-    add rsp, 0
-    push QWORD [rsp + 0]
     push QWORD [rsp + 24]
     pop rax
     pop rbx
-    add rax, rbx
+    cmp rax, rbx
+    jle l0True
+    jmp l0False
+l0True:
+    mov rax, 1
+    jmp l0End
+l0False:
+    mov rax, 0
+l0End:
     push rax
+    pop rax
+    pop rbx
+    or rax, rbx
+    cmp rax, 1
+    je l1True
+    jmp l1False
+l1True:
+    mov rax, 1
+    jmp l1End
+l1False:
+    mov rax, 0
+l1End:
+    push rax
+    add rsp, 0
+    push QWORD [rsp + 0]
     mov rax, 60
     pop rdi
     syscall

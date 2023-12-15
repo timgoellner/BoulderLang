@@ -1,9 +1,10 @@
 set num = 10 + 2 * 3;
 num = (4 + num) / 4;
 
+
 set test;
 {
-  test = -3;
+  test = num <= 12 | false;
 }
 
-stop(num + test);
+stop(test & false);

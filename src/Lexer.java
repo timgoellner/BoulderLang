@@ -28,6 +28,14 @@ public class Lexer {
             tokens.add(new Token(TokenType.kwSet, null));
             buffer = "";
             break;
+          case "true":
+            tokens.add(new Token(TokenType.bool, "true"));
+            buffer = "";
+            break;
+          case "false":
+            tokens.add(new Token(TokenType.bool, "false"));
+            buffer = "";
+            break;
         }
 
         try {
@@ -44,11 +52,43 @@ public class Lexer {
       }
 
       switch (currChar) {
+        case '=':
+          if (get() == '=') {
+            tokens.add(new Token(TokenType.equal, null));
+            consume();
+          }
+          else tokens.add(new Token(TokenType.assign, null));
+          break;
+        case '!':
+          if (get() == '=') {
+            tokens.add(new Token(TokenType.notEqual, null));
+            consume();
+          }
+          // TODO else tokens.add(new Token(TokenType.not, null));
+          break;
+        case '<':
+          if (get() == '=') {
+            tokens.add(new Token(TokenType.lessEqual, null));
+            consume();
+          }
+          else tokens.add(new Token(TokenType.less, null));
+          break;
+        case '>':
+          if (get() == '=') {
+            tokens.add(new Token(TokenType.greaterEqual, null));
+            consume();
+          }
+          else tokens.add(new Token(TokenType.greater, null));
+          break;
+        
+        case '&':
+          tokens.add(new Token(TokenType.and, null));
+          break;
+        case '|':
+          tokens.add(new Token(TokenType.or, null));
+          break;
         case ';':
           tokens.add(new Token(TokenType.semicolon, null));
-          break;
-        case '=':
-          tokens.add(new Token(TokenType.equal, null));
           break;
         case '(':
           tokens.add(new Token(TokenType.parenthesesOpen, null));

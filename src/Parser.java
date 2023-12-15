@@ -22,6 +22,8 @@ public class Parser {
 
     if (get().type() == TokenType.integer) {
       termObject = new IntegerLiteral(consume());
+    } else if (get().type() == TokenType.bool) {
+      termObject = new BooleanLiteral(consume());
     } else if (get().type() == TokenType.identifier) {
       termObject = new Identifier(consume());
     } else if (get().type() == TokenType.parenthesesOpen) {
@@ -67,15 +69,20 @@ public class Parser {
       Expression expressionRight = parseExpression(nextMinPrecedence);
 
       ExpressionBinary expressionBinary = null;
-      if (opertator == TokenType.plus) {
-        expressionBinary = new ExpressionBinary(ExpressionBinaryType.addition, expressionLeft, expressionRight);
-      } else if (opertator == TokenType.minus) {
-        expressionBinary = new ExpressionBinary(ExpressionBinaryType.subtraction, expressionLeft, expressionRight);
-      } else if (opertator == TokenType.asterisk) {
-        expressionBinary = new ExpressionBinary(ExpressionBinaryType.multiplication, expressionLeft, expressionRight);
-      } else if (opertator == TokenType.slash) {
-        expressionBinary = new ExpressionBinary(ExpressionBinaryType.division, expressionLeft, expressionRight);
-      }
+      if (opertator == TokenType.plus) expressionBinary = new ExpressionBinary(ExpressionBinaryType.addition, expressionLeft, expressionRight);
+      else if (opertator == TokenType.minus) expressionBinary = new ExpressionBinary(ExpressionBinaryType.subtraction, expressionLeft, expressionRight);
+      else if (opertator == TokenType.asterisk) expressionBinary = new ExpressionBinary(ExpressionBinaryType.multiplication, expressionLeft, expressionRight);
+      else if (opertator == TokenType.slash) expressionBinary = new ExpressionBinary(ExpressionBinaryType.division, expressionLeft, expressionRight);
+      
+      else if (opertator == TokenType.equal) expressionBinary = new ExpressionBinary(ExpressionBinaryType.equal, expressionLeft, expressionRight);
+      else if (opertator == TokenType.notEqual) expressionBinary = new ExpressionBinary(ExpressionBinaryType.notEqual, expressionLeft, expressionRight);
+      else if (opertator == TokenType.less) expressionBinary = new ExpressionBinary(ExpressionBinaryType.less, expressionLeft, expressionRight);
+      else if (opertator == TokenType.lessEqual) expressionBinary = new ExpressionBinary(ExpressionBinaryType.lessEqual, expressionLeft, expressionRight);
+      else if (opertator == TokenType.greater) expressionBinary = new ExpressionBinary(ExpressionBinaryType.greater, expressionLeft, expressionRight);
+      else if (opertator == TokenType.greaterEqual) expressionBinary = new ExpressionBinary(ExpressionBinaryType.greaterEqual, expressionLeft, expressionRight);
+
+      else if (opertator == TokenType.and) expressionBinary = new ExpressionBinary(ExpressionBinaryType.and, expressionLeft, expressionRight);
+      else if (opertator == TokenType.or) expressionBinary = new ExpressionBinary(ExpressionBinaryType.or, expressionLeft, expressionRight);
 
       expressionLeft = new Expression(expressionBinary);
     }
@@ -141,7 +148,7 @@ public class Parser {
         return new Statement(statementSet);
       }
 
-      if (get() == null || get().type() != TokenType.equal) {
+      if (get() == null || get().type() != TokenType.assign) {
         System.out.println("parsing: expected equal sign");
         System.exit(1);
       }
@@ -161,7 +168,7 @@ public class Parser {
     } else if (get().type() == TokenType.identifier) {
       Token identifier = consume();
 
-      if (get() == null || get().type() != TokenType.equal) {
+      if (get() == null || get().type() != TokenType.assign) {
         System.out.println("parsing: expected equal sign");
         System.exit(1);
       }
@@ -210,12 +217,22 @@ public class Parser {
 
   private int getPrecedence(TokenType tokenType) {
     switch (tokenType) {
+      case and:
+      case or:
+        return 1;
+      case equal:
+      case notEqual:
+      case less:
+      case lessEqual:
+      case greater:
+      case greaterEqual:
+        return 2;
       case plus:
       case minus:
-        return 1;
+        return 3;
       case asterisk:
       case slash:
-        return 2;
+        return 4;
       default:
         return 0;
     }
