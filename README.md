@@ -29,7 +29,7 @@ This programm exits with `1`
 ## Language Reference
 This is what the language supports so far.
 
-### Integer Literat
+### Integer Literal
 A sequence of decimal digits.
 ```
 327
