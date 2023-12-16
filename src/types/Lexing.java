@@ -10,6 +10,7 @@ public interface Lexing {
     identifier,
 
     equal,
+    not,
     notEqual,
     less,
     lessEqual,

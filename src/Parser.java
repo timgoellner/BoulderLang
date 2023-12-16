@@ -46,6 +46,11 @@ public class Parser {
       Expression expression = new Expression(expressionBinary);
       
       termObject = new Parentheses(expression);
+    } else if (get().type() == TokenType.not) {
+      consume();
+
+      Term term = parseTerm();
+      termObject = new TermNegated(term);
     }
     
     if (termObject == null) {

@@ -44,6 +44,23 @@ public class Generator {
       push("QWORD [rsp + " + ((stackSize - ((Integer) variableLocation)) * 8) + "]");
     } else if (term.object() instanceof Parentheses parentheses) {
       generateExpression(parentheses.expression());
+    } else if (term.object() instanceof TermNegated termNegated) {
+      generateTerm(termNegated.term());
+
+      pop("rax");
+
+      output += "    cmp rax, 0\n";
+      output += "    je l" + currLabel + "True\n";
+      output += "    mov rax, 0\n";
+      output += "    jmp l" + currLabel + "End\n";
+
+      output += "l" + currLabel + "True:\n";
+      output += "    mov rax, 1\n";
+
+      output += "l" + currLabel + "End:\n";
+      push("rax");
+
+      currLabel++;
     }
   }
 

@@ -38,8 +38,12 @@ public interface Parsing {
     Expression expression
   ) {}
 
+  public record TermNegated(
+    Term term
+  ) {}
+
   public record Term(
-    // IntegerLiteral || Boolean || Identifier || Parentheses
+    // IntegerLiteral || Boolean || Identifier || Parentheses || TermNegated
     Object object
   ) {}
 

@@ -64,7 +64,7 @@ public class Lexer {
             tokens.add(new Token(TokenType.notEqual, null));
             consume();
           }
-          // TODO else tokens.add(new Token(TokenType.not, null));
+          else tokens.add(new Token(TokenType.not, null));
           break;
         case '<':
           if (get() == '=') {

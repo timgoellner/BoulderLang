@@ -79,10 +79,19 @@ l2True:
 l2End:
     push rax
     pop rax
-    cmp rax, 1
+    cmp rax, 0
     je l3True
+    mov rax, 0
     jmp l3End
 l3True:
+    mov rax, 1
+l3End:
+    push rax
+    pop rax
+    cmp rax, 1
+    je l4True
+    jmp l4End
+l4True:
     mov rax, 32
     push rax
     mov rax, 32
@@ -91,25 +100,25 @@ l3True:
     pop rax
     pop rbx
     cmp rax, rbx
-    je l4True
+    je l5True
     mov rax, 0
-    jmp l4End
-l4True:
+    jmp l5End
+l5True:
     mov rax, 1
-l4End:
+l5End:
     push rax
     pop rax
     cmp rax, 1
-    je l5True
-    jmp l5End
-l5True:
+    je l6True
+    jmp l6End
+l6True:
     push QWORD [rsp + 0]
     mov rax, 60
     pop rdi
     syscall
-l5End:
+l6End:
     add rsp, 8
-l3End:
+l4End:
     mov rax, 1
     push rax
     push QWORD [rsp + 8]
@@ -117,12 +126,12 @@ l3End:
     pop rbx
     and rax, rbx
     cmp rax, 1
-    je l6True
+    je l7True
     mov rax, 0
-    jmp l6End
-l6True:
+    jmp l7End
+l7True:
     mov rax, 1
-l6End:
+l7End:
     push rax
     mov rax, 60
     pop rdi
