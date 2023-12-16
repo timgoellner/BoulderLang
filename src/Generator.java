@@ -156,8 +156,8 @@ public class Generator {
 
       generateExpression(statementAssignment.expression());
       variables.put(statementAssignment.identifier().value(), stackSize);
-    } else if (statement.object() instanceof StatementCondition statementCondition) {
-      generateExpression(statementCondition.expression());
+    } else if (statement.object() instanceof Branch statementCondition) {
+      generateExpression(statementCondition.condition());
 
       int label = currLabel;
       currLabel++;
@@ -166,10 +166,14 @@ public class Generator {
 
       output += "    cmp rax, 1\n";
       output += "    je l" + label + "True\n";
-      output += "    jmp l" + label + "End\n";
+      output += "    jmp l" + label + "False\n";
 
       output += "l" + label + "True:\n";
       generateStatement(statementCondition.statement());
+      output += "    jmp l" + label + "End\n";
+
+      output += "l" + label + "False:\n";
+      if (statementCondition.statementElse() != null) generateStatement(statementCondition.statementElse());
 
       output += "l" + label + "End:\n";
     }

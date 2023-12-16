@@ -61,10 +61,10 @@ public class Lexer {
           break;
         case '!':
           if (get() == '=') {
-            tokens.add(new Token(TokenType.notEqual, null));
+            tokens.add(new Token(TokenType.exclamationMarkEqual, null));
             consume();
           }
-          else tokens.add(new Token(TokenType.not, null));
+          else tokens.add(new Token(TokenType.exclamationMark, null));
           break;
         case '<':
           if (get() == '=') {
@@ -82,10 +82,10 @@ public class Lexer {
           break;
         
         case '&':
-          tokens.add(new Token(TokenType.and, null));
+          tokens.add(new Token(TokenType.ampersand, null));
           break;
         case '|':
-          tokens.add(new Token(TokenType.or, null));
+          tokens.add(new Token(TokenType.pipe, null));
           break;
         case ';':
           tokens.add(new Token(TokenType.semicolon, null));
@@ -113,6 +113,9 @@ public class Lexer {
           break;
         case '/':
           tokens.add(new Token(TokenType.slash, null));
+          break;
+        case '\\':
+          tokens.add(new Token(TokenType.backslash, null));
           break;
       }
     }

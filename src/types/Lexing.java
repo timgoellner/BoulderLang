@@ -10,15 +10,11 @@ public interface Lexing {
     identifier,
 
     equal,
-    not,
-    notEqual,
+    exclamationMarkEqual,
     less,
     lessEqual,
     greater,
     greaterEqual,
-    
-    and,
-    or,
 
     semicolon,
     assign,
@@ -29,7 +25,11 @@ public interface Lexing {
     plus,
     minus,
     asterisk,
-    slash
+    slash,
+    exclamationMark,
+    ampersand,
+    pipe,
+    backslash
   }
 
   public record Token(

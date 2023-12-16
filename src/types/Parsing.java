@@ -58,9 +58,10 @@ public interface Parsing {
     Object object
   ) {}
 
-  public record StatementCondition(
-    Expression expression,
-    Statement statement
+  public record Branch(
+    Expression condition,
+    Statement statement,
+    Statement statementElse
   ) {}
 
   public record StatementAssignment(
@@ -78,7 +79,7 @@ public interface Parsing {
   ) {}
 
   public record Statement(
-    // StatementSet || StatementStop || StatementAssignment || Scope || StatementCondition
+    // StatementSet || StatementStop || StatementAssignment || Scope || Branch
     Object object
   ) {}
 

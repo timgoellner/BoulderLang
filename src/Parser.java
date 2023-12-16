@@ -46,7 +46,7 @@ public class Parser {
       Expression expression = new Expression(expressionBinary);
       
       termObject = new Parentheses(expression);
-    } else if (get().type() == TokenType.not) {
+    } else if (get().type() == TokenType.exclamationMark) {
       consume();
 
       Term term = parseTerm();
@@ -80,14 +80,14 @@ public class Parser {
       else if (opertator == TokenType.slash) expressionBinary = new ExpressionBinary(ExpressionBinaryType.division, expressionLeft, expressionRight);
       
       else if (opertator == TokenType.equal) expressionBinary = new ExpressionBinary(ExpressionBinaryType.equal, expressionLeft, expressionRight);
-      else if (opertator == TokenType.notEqual) expressionBinary = new ExpressionBinary(ExpressionBinaryType.notEqual, expressionLeft, expressionRight);
+      else if (opertator == TokenType.exclamationMarkEqual) expressionBinary = new ExpressionBinary(ExpressionBinaryType.notEqual, expressionLeft, expressionRight);
       else if (opertator == TokenType.less) expressionBinary = new ExpressionBinary(ExpressionBinaryType.less, expressionLeft, expressionRight);
       else if (opertator == TokenType.lessEqual) expressionBinary = new ExpressionBinary(ExpressionBinaryType.lessEqual, expressionLeft, expressionRight);
       else if (opertator == TokenType.greater) expressionBinary = new ExpressionBinary(ExpressionBinaryType.greater, expressionLeft, expressionRight);
       else if (opertator == TokenType.greaterEqual) expressionBinary = new ExpressionBinary(ExpressionBinaryType.greaterEqual, expressionLeft, expressionRight);
 
-      else if (opertator == TokenType.and) expressionBinary = new ExpressionBinary(ExpressionBinaryType.and, expressionLeft, expressionRight);
-      else if (opertator == TokenType.or) expressionBinary = new ExpressionBinary(ExpressionBinaryType.or, expressionLeft, expressionRight);
+      else if (opertator == TokenType.ampersand) expressionBinary = new ExpressionBinary(ExpressionBinaryType.and, expressionLeft, expressionRight);
+      else if (opertator == TokenType.pipe) expressionBinary = new ExpressionBinary(ExpressionBinaryType.or, expressionLeft, expressionRight);
 
       expressionLeft = new Expression(expressionBinary);
     }
@@ -202,8 +202,14 @@ public class Parser {
       consume();
 
       Statement statement = parseStatement();
+      Statement statementElse = null;
 
-      StatementCondition statementCondition = new StatementCondition(expression, statement);
+      if (get().type() == TokenType.backslash) {
+        consume();
+        statementElse = parseStatement();
+      }
+
+      Branch statementCondition = new Branch(expression, statement, statementElse);
 
       return new Statement(statementCondition);
     }
@@ -238,11 +244,11 @@ public class Parser {
 
   private int getPrecedence(TokenType tokenType) {
     switch (tokenType) {
-      case and:
-      case or:
+      case ampersand:
+      case pipe:
         return 1;
       case equal:
-      case notEqual:
+      case exclamationMarkEqual:
       case less:
       case lessEqual:
       case greater:
