@@ -54,6 +54,11 @@ public interface Parsing {
     Object object
   ) {}
 
+  public record StatementCondition(
+    Expression expression,
+    Statement statement
+  ) {}
+
   public record StatementAssignment(
     Token identifier,
     Expression expression
@@ -69,7 +74,7 @@ public interface Parsing {
   ) {}
 
   public record Statement(
-    // StatementSet || StatementStop || StatementAssignment || Scope
+    // StatementSet || StatementStop || StatementAssignment || Scope || StatementCondition
     Object object
   ) {}
 

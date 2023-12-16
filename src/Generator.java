@@ -76,15 +76,12 @@ public class Generator {
         else if (expressionBinary.type() == ExpressionBinaryType.greaterEqual) output += "    jge l" + currLabel + "True\n";
       }
 
-      output += "    jmp l" + currLabel + "False\n";
+      output += "    mov rax, 0\n";
+      output += "    jmp l" + currLabel + "End\n";
 
       output += "l" + currLabel + "True:\n";
       output += "    mov rax, 1\n";
-      output += "    jmp l" + currLabel + "End\n";
-
-      output += "l" + currLabel + "False:\n";
-      output += "    mov rax, 0\n";
-
+      
       output += "l" + currLabel + "End:\n";
 
       currLabel++;
@@ -142,6 +139,22 @@ public class Generator {
 
       generateExpression(statementAssignment.expression());
       variables.put(statementAssignment.identifier().value(), stackSize);
+    } else if (statement.object() instanceof StatementCondition statementCondition) {
+      generateExpression(statementCondition.expression());
+
+      int label = currLabel;
+      currLabel++;
+
+      pop("rax");
+
+      output += "    cmp rax, 1\n";
+      output += "    je l" + label + "True\n";
+      output += "    jmp l" + label + "End\n";
+
+      output += "l" + label + "True:\n";
+      generateStatement(statementCondition.statement());
+
+      output += "l" + label + "End:\n";
     }
   }
 

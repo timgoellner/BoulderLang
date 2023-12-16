@@ -7,4 +7,10 @@ set test;
   test = num <= 12 | false;
 }
 
-stop(test & false);
+test = 20;
+(test >= 22 - 2) {
+  set test2 = 32;
+  (test2 == 32) stop(test2);
+}
+
+stop(test & true);

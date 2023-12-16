@@ -185,6 +185,22 @@ public class Parser {
       StatementAssignment statementAssignment = new StatementAssignment(identifier, expression);
 
       return new Statement(statementAssignment);
+    } else if (get().type() == TokenType.parenthesesOpen) {
+      consume();
+
+      Expression expression = parseExpression(1);
+
+      if (get() == null || get().type() != TokenType.parenthesesClosed) {
+        System.out.println("parsing: expected ')'");
+        System.exit(1);
+      }
+      consume();
+
+      Statement statement = parseStatement();
+
+      StatementCondition statementCondition = new StatementCondition(expression, statement);
+
+      return new Statement(statementCondition);
     }
 
     return null;
