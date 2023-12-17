@@ -34,6 +34,8 @@ public interface Lexing {
 
   public record Token(
     TokenType type,
-    String value
+    String value,
+    int row,
+    int column
   ) {} 
 }

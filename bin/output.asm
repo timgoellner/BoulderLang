@@ -1,6 +1,7 @@
 section .text
     global _start
 _start:
+    ; StatementSet
     mov rax, 3
     push rax
     mov rax, 2
@@ -15,6 +16,7 @@ _start:
     pop rbx
     add rax, rbx
     push rax
+    ; StatementAssignment
     mov rax, 4
     push rax
     push QWORD [rsp + 8]
@@ -28,8 +30,10 @@ _start:
     pop rbx
     div rbx
     push rax
+    ; StatementSet
     mov rax, 0
     push rax
+    ; Scope
     mov rax, 0
     push rax
     mov rax, 12
@@ -57,8 +61,10 @@ l1True:
 l1End:
     push rax
     add rsp, 0
+    ; StatementAssignment
     mov rax, 20
     push rax
+    ; Branch
     mov rax, 2
     push rax
     mov rax, 22
@@ -148,6 +154,7 @@ l8False:
 l8End:
     add rsp, 0
 l4End:
+    ; StatementStop
     mov rax, 5
     push rax
     push QWORD [rsp + 8]

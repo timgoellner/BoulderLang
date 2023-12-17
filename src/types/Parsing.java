@@ -43,7 +43,7 @@ public interface Parsing {
   ) {}
 
   public record Term(
-    // IntegerLiteral || Boolean || Identifier || Parentheses || TermNegated
+    // IntegerLiteral || BooleanLiteral || Identifier || Parentheses || TermNegated
     Object object
   ) {}
 
@@ -78,13 +78,13 @@ public interface Parsing {
     Expression expression
   ) {}
 
+  public record Scope(
+    List<Statement> statements
+  ) {}
+
   public record Statement(
     // StatementSet || StatementStop || StatementAssignment || Scope || Branch
     Object object
-  ) {}
-
-  public record Scope(
-    List<Statement> statements
   ) {}
 
   public record Root(

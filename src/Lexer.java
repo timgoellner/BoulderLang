@@ -14,26 +14,31 @@ public class Lexer {
     List<Token> tokens = new ArrayList<Token>();
     String buffer = "";
 
+    int row = 1;
+    int column = 0;
+
     while (raw.length() > 0) {
       char currChar = consume();
+
+      
 
       if (Character.isAlphabetic(currChar) ||  Character.isDigit(currChar)) buffer += currChar;
       else if (buffer.length() > 0) {
         switch (buffer) {
           case "stop":
-            tokens.add(new Token(TokenType.kwStop, null));
+            tokens.add(new Token(TokenType.kwStop, null, row, column));
             buffer = "";
             break;
           case "set":
-            tokens.add(new Token(TokenType.kwSet, null));
+            tokens.add(new Token(TokenType.kwSet, null, row, column));
             buffer = "";
             break;
           case "true":
-            tokens.add(new Token(TokenType.bool, "true"));
+            tokens.add(new Token(TokenType.bool, "true", row, column));
             buffer = "";
             break;
           case "false":
-            tokens.add(new Token(TokenType.bool, "false"));
+            tokens.add(new Token(TokenType.bool, "false", row, column));
             buffer = "";
             break;
         }
@@ -41,12 +46,12 @@ public class Lexer {
         try {
           Integer.parseInt(buffer);
 
-          tokens.add(new Token(TokenType.integer, buffer));
+          tokens.add(new Token(TokenType.integer, buffer, row, column));
           buffer = "";
         } catch (NumberFormatException error) {}
 
         if (!buffer.isEmpty()) {
-          tokens.add(new Token(TokenType.identifier, buffer));
+          tokens.add(new Token(TokenType.identifier, buffer, row, column));
           buffer = "";
         }
       }
@@ -54,70 +59,73 @@ public class Lexer {
       switch (currChar) {
         case '=':
           if (get() == '=') {
-            tokens.add(new Token(TokenType.equal, null));
+            tokens.add(new Token(TokenType.equal, null, row, column));
             consume();
           }
-          else tokens.add(new Token(TokenType.assign, null));
+          else tokens.add(new Token(TokenType.assign, null, row, column));
           break;
         case '!':
           if (get() == '=') {
-            tokens.add(new Token(TokenType.exclamationMarkEqual, null));
+            tokens.add(new Token(TokenType.exclamationMarkEqual, null, row, column));
             consume();
           }
-          else tokens.add(new Token(TokenType.exclamationMark, null));
+          else tokens.add(new Token(TokenType.exclamationMark, null, row, column));
           break;
         case '<':
           if (get() == '=') {
-            tokens.add(new Token(TokenType.lessEqual, null));
+            tokens.add(new Token(TokenType.lessEqual, null, row, column));
             consume();
           }
-          else tokens.add(new Token(TokenType.less, null));
+          else tokens.add(new Token(TokenType.less, null, row, column));
           break;
         case '>':
           if (get() == '=') {
-            tokens.add(new Token(TokenType.greaterEqual, null));
+            tokens.add(new Token(TokenType.greaterEqual, null, row, column));
             consume();
           }
-          else tokens.add(new Token(TokenType.greater, null));
+          else tokens.add(new Token(TokenType.greater, null, row, column));
           break;
         
         case '&':
-          tokens.add(new Token(TokenType.ampersand, null));
+          tokens.add(new Token(TokenType.ampersand, null, row, column));
           break;
         case '|':
-          tokens.add(new Token(TokenType.pipe, null));
+          tokens.add(new Token(TokenType.pipe, null, row, column));
           break;
         case ';':
-          tokens.add(new Token(TokenType.semicolon, null));
+          tokens.add(new Token(TokenType.semicolon, null, row, column));
           break;
         case '(':
-          tokens.add(new Token(TokenType.parenthesesOpen, null));
+          tokens.add(new Token(TokenType.parenthesesOpen, null, row, column));
           break;
         case ')':
-          tokens.add(new Token(TokenType.parenthesesClosed, null));
+          tokens.add(new Token(TokenType.parenthesesClosed, null, row, column));
           break;
         case '{':
-          tokens.add(new Token(TokenType.curlyBracketOpen, null));
+          tokens.add(new Token(TokenType.curlyBracketOpen, null, row, column));
           break;
         case '}':
-          tokens.add(new Token(TokenType.curlyBracketClosed, null));
+          tokens.add(new Token(TokenType.curlyBracketClosed, null, row, column));
           break;
         case '+':
-          tokens.add(new Token(TokenType.plus, null));
+          tokens.add(new Token(TokenType.plus, null, row, column));
           break;
         case '-':
-          tokens.add(new Token(TokenType.minus, null));
+          tokens.add(new Token(TokenType.minus, null, row, column));
           break;
         case '*':
-          tokens.add(new Token(TokenType.asterisk, null));
+          tokens.add(new Token(TokenType.asterisk, null, row, column));
           break;
         case '/':
-          tokens.add(new Token(TokenType.slash, null));
+          tokens.add(new Token(TokenType.slash, null, row, column));
           break;
         case '\\':
-          tokens.add(new Token(TokenType.backslash, null));
+          tokens.add(new Token(TokenType.backslash, null, row, column));
           break;
       }
+
+      if (currChar == '\n') { row++; column = 0; }
+      else column++;
     }
 
     return tokens;

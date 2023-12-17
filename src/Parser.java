@@ -13,10 +13,7 @@ public class Parser {
 
 
   private Term parseTerm() {
-    if (get() == null) {
-      System.out.println("parsing: expected expression");
-      System.exit(1);
-    }
+    if (get() == null) generateError("parsing: expected expression");
 
     Object termObject = null;
 
@@ -30,15 +27,12 @@ public class Parser {
       consume();
       termObject = new Parentheses(parseExpression(1));
 
-      if (get() == null || get().type() != TokenType.parenthesesClosed) {
-        System.out.println("parsing: expected ')'");
-        System.exit(1);
-      }
+      if (get() == null || get().type() != TokenType.parenthesesClosed) generateError("parsing: expected ')'");
       consume();
     } else if (get().type() == TokenType.minus) {
       consume();
 
-      IntegerLiteral zeroIntegerLiteral = new IntegerLiteral(new Token(TokenType.integer, "0"));
+      IntegerLiteral zeroIntegerLiteral = new IntegerLiteral(new Token(TokenType.integer, "0", -1, -1));
       Term zeroTerm = new Term(zeroIntegerLiteral);
       Expression zeroExpression = new Expression(zeroTerm);
 
@@ -53,10 +47,7 @@ public class Parser {
       termObject = new TermNegated(term);
     }
     
-    if (termObject == null) {
-      System.out.println("parsing: expected term");
-      System.exit(1);
-    }
+    if (termObject == null) generateError("parsing: expected term");
 
     return new Term(termObject);
   }
@@ -96,6 +87,8 @@ public class Parser {
   }
 
   private Statement parseStatement() {
+    if (get() == null) return null;
+
     if (get().type() == TokenType.curlyBracketOpen) {
       consume();
 
@@ -103,10 +96,7 @@ public class Parser {
       Statement statement;
       while ((statement = parseStatement()) != null) statements.add(statement);
 
-      if (get() == null || get().type() != TokenType.curlyBracketClosed) {
-        System.out.println("parsing: expected '}'");
-        System.exit(1);
-      }
+      if (get() == null || get().type() != TokenType.curlyBracketClosed) generateError("parsing: expected '}'");
       consume();
 
       Scope scope = new Scope(statements);
@@ -115,24 +105,15 @@ public class Parser {
     } else if (get().type() == TokenType.kwStop) {
       consume();
 
-      if (get() == null || get().type() != TokenType.parenthesesOpen) {
-        System.out.println("parsing: expected '('");
-        System.exit(1);
-      }
+      if (get() == null || get().type() != TokenType.parenthesesOpen) generateError("parsing: expected '('");
       consume();
 
       Expression expression = parseExpression(1);
 
-      if (get() == null || get().type() != TokenType.parenthesesClosed) {
-        System.out.println("parsing: expected ')'");
-        System.exit(1);
-      }
+      if (get() == null || get().type() != TokenType.parenthesesClosed) generateError("parsing: expected ')'");
       consume();
 
-      if (get() == null || get().type() != TokenType.semicolon) {
-        System.out.println("parsing: expected ';'");
-        System.exit(1);
-      }
+      if (get() == null || get().type() != TokenType.semicolon) generateError("parsing: expected ';'");
       consume();
 
       StatementStop statementStop = new StatementStop(expression);
@@ -141,10 +122,7 @@ public class Parser {
     } else if (get().type() == TokenType.kwSet) {
       consume();
 
-      if (get() == null || get().type() != TokenType.identifier) {
-        System.out.println("parsing: expected identifier");
-        System.exit(1);
-      }
+      if (get() == null || get().type() != TokenType.identifier) generateError("parsing: expected identifier");
       Token identifier = consume();
 
       if (get()!= null && get().type() == TokenType.semicolon) {
@@ -153,18 +131,12 @@ public class Parser {
         return new Statement(statementSet);
       }
 
-      if (get() == null || get().type() != TokenType.assign) {
-        System.out.println("parsing: expected equal sign");
-        System.exit(1);
-      }
+      if (get() == null || get().type() != TokenType.assign) generateError("parsing: expected equal sign");
       consume();
 
       Expression expression = parseExpression(1);
 
-      if (get() == null || get().type() != TokenType.semicolon) {
-        System.out.println("parsing: expected ';'");
-        System.exit(1);
-      }
+      if (get() == null || get().type() != TokenType.semicolon) generateError("parsing: expected ';'");
       consume();
 
       StatementSet statementSet = new StatementSet(identifier, expression);
@@ -173,18 +145,12 @@ public class Parser {
     } else if (get().type() == TokenType.identifier) {
       Token identifier = consume();
 
-      if (get() == null || get().type() != TokenType.assign) {
-        System.out.println("parsing: expected equal sign");
-        System.exit(1);
-      }
+      if (get() == null || get().type() != TokenType.assign) generateError("parsing: expected equal sign");
       consume();
 
       Expression expression = parseExpression(1);
 
-      if (get() == null || get().type() != TokenType.semicolon) {
-        System.out.println("parsing: expected ';'");
-        System.exit(1);
-      }
+      if (get() == null || get().type() != TokenType.semicolon) generateError("parsing: expected ';'");
       consume();
 
       StatementAssignment statementAssignment = new StatementAssignment(identifier, expression);
@@ -195,10 +161,7 @@ public class Parser {
 
       Expression expression = parseExpression(1);
 
-      if (get() == null || get().type() != TokenType.parenthesesClosed) {
-        System.out.println("parsing: expected ')'");
-        System.exit(1);
-      }
+      if (get() == null || get().type() != TokenType.parenthesesClosed) generateError("parsing: expected ')'");
       consume();
 
       Statement statement = parseStatement();
@@ -222,10 +185,7 @@ public class Parser {
     
     while (tokens.size() > 0) {
       Statement statement = parseStatement();
-      if (statement == null) {
-        System.out.println("parsing: invalid statement");
-        System.exit(1);
-      }
+      if (statement == null) generateError("parsing: invalid statement");
       statements.add(statement);
     }
 
@@ -263,5 +223,14 @@ public class Parser {
       default:
         return 0;
     }
+  }
+
+  private void generateError(String msg) {
+    Token token = get();
+    String row = (token == null) ? "EOF" : token.row() + "";
+    String column = (token == null) ? "EOF" : token.column() + "";
+
+    System.out.println(row + ":" + column + ": ERROR: " + msg);
+    System.exit(1);
   }
 }

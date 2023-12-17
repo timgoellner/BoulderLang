@@ -1,3 +1,4 @@
+import types.Lexing.Token;
 import types.Parsing.*;
 
 import java.util.LinkedHashMap;
@@ -36,10 +37,7 @@ public class Generator {
     } else if (term.object() instanceof Identifier identifier) {
       Object variableLocation = variables.get(identifier.identifier().value());
 
-      if (variableLocation == null) {
-        System.out.println("generation: undeclared variable");
-        System.exit(1);
-      }
+      if (variableLocation == null) generateError(identifier.identifier(), "generation: undeclared variable '" + identifier.identifier().value() + "'");
 
       push("QWORD [rsp + " + ((stackSize - ((Integer) variableLocation)) * 8) + "]");
     } else if (term.object() instanceof Parentheses parentheses) {
@@ -137,10 +135,7 @@ public class Generator {
       pop("rdi");
       output += "    syscall\n";
     } else if (statement.object() instanceof StatementSet statementSet) {
-      if (variables.containsKey(statementSet.identifier().value())) {
-        System.out.println("generation: variable already declared");
-        System.exit(1);
-      }
+      if (variables.containsKey(statementSet.identifier().value())) generateError(statementSet.identifier(), "generation: variable already declared '" + statementSet.identifier().value() + "'");
 
       if (statementSet.expression() == null) {
         output += "    mov rax, 0\n";
@@ -149,10 +144,7 @@ public class Generator {
 
       variables.put(statementSet.identifier().value(), stackSize);
     } else if (statement.object() instanceof StatementAssignment statementAssignment) {
-      if (!variables.containsKey(statementAssignment.identifier().value())) {
-        System.out.println("generation: undeclared variable");
-        System.exit(1);
-      }
+      if (!variables.containsKey(statementAssignment.identifier().value())) generateError(statementAssignment.identifier(), "generation: undeclared variable '" + statementAssignment.identifier().value() + "'");
 
       generateExpression(statementAssignment.expression());
       variables.put(statementAssignment.identifier().value(), stackSize);
@@ -181,6 +173,7 @@ public class Generator {
 
   public String generate() {
     for (Statement statement : root.statements()) {
+      output += "    ; " + statement.object().getClass().getSimpleName() + "\n";
       generateStatement(statement);
     }
 
@@ -200,5 +193,10 @@ public class Generator {
   private void pop(String register) {
     output += "    pop " + register + "\n";
     stackSize--;
+  }
+
+  private void generateError(Token token, String msg) {
+    System.out.println(token.row() + ":" + token.column() + ": ERROR: " + msg);
+    System.exit(1);
   }
 }
