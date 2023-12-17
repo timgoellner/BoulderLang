@@ -2,7 +2,7 @@
 
 Simle Compiler, which compiles to x86 64-bit nasm style assembly. <br>
 **This language is a work in progress. Everything can change at any time, so use it at your own risk.**
-
+<br>
 ## Usage
 Compilation generates assembly code, compiles it with [nasm](https://nasm.us/) and links it with the [GNU linker](https://www.gnu.org/software/binutils/), <br>so make sure you have it in you `$PATH`.
 
@@ -12,6 +12,7 @@ exit(0);
 $ java -cp build Main main.boulder
 $ ./bin/output.exe
 ```
+<br>
 
 ## An Example
 
@@ -25,6 +26,7 @@ set number = 15;
 } \ exit(2);
 ```
 This programm exits with `1`
+<br><br>
 
 ## Language Reference
 This is what the language supports so far.
@@ -54,13 +56,31 @@ An *Expression* surrounded by parentheses.
 ```
 
 ### Negated Term
-A *Term* prefixed with a dash (`-`).
+A *Term* prefixed with a dash (`!`), making it `true` if its `false` and `false` otherwise.
 ```
--654
+!false
 ```
 
 ### *Term (group class)*
 Either *Integer Literal*, *Boolean*, *Identifier*, *Parentheses* or *Negated Term*.
+<br><br>
+
+### Binary Expression Types
+
+| Name          | Sign | Precedence |
+| ------------- | --   | ---------- |
+| addition      | +    | 3          |
+| subtraction   | -    | 3          |
+| multiplication| *    | 4          |
+| division      | /    | 4          |
+| equal         | ==   | 2          |
+| notEqual      | !=   | 2          |
+| less          | <    | 2          |
+| lessEqual     | <=   | 2          |
+| greater       | >    | 2          |
+| greaterEqual  | >=   | 2          |
+| and (bitwise) | &    | 1          |
+| or (bitwise)  | \|   | 1          |
 
 ### Binary Expression
 Two *Expressions* connected with a *Binary Expression Type*.
@@ -70,6 +90,7 @@ num + 23
 
 ### *Expression (group class)*
 Either *Term* or *Binary Expression*.
+<br><br>
 
 ### Branch
 A branch executing a *Statement* when its condition *Expression* is `true`. Optionally executes a *Statement*-Else when the condition is `false` and the *Statement* is suffixed with `\`.
