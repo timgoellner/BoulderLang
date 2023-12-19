@@ -29,7 +29,8 @@ public interface Lexing {
     exclamationMark,
     ampersand,
     pipe,
-    backslash
+    backslash,
+    tilde
   }
 
   public record Token(

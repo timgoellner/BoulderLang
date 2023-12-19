@@ -3,8 +3,10 @@ import types.Parsing.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Stack;
 import java.util.Map.Entry;
+import java.util.Arrays;
 import java.util.Iterator;
 
 public class Generator {
@@ -30,16 +32,16 @@ public class Generator {
   private void generateTerm(Term term) {
     if (term.object() instanceof IntegerLiteral integerLiteral) {
       output += "    mov rax, " + integerLiteral.integer().value() + "\n";
-      push("rax");
+      push("rax", true);
     } else if (term.object() instanceof BooleanLiteral booleanLiteral) {
       output += "    mov rax, " + ((booleanLiteral.bool().value() == "true") ? "1" : "0") + "\n";
-      push("rax");
+      push("rax", true);
     } else if (term.object() instanceof Identifier identifier) {
       Object variableLocation = variables.get(identifier.identifier().value());
-
+      
       if (variableLocation == null) generateError(identifier.identifier(), "generation: undeclared variable '" + identifier.identifier().value() + "'");
 
-      push("QWORD [rsp + " + ((stackSize - ((Integer) variableLocation)) * 8) + "]");
+      push("QWORD [rsp + " + ((stackSize - ((Integer) variableLocation)) * 8) + "]", true);
     } else if (term.object() instanceof Parentheses parentheses) {
       generateExpression(parentheses.expression());
     } else if (term.object() instanceof TermNegated termNegated) {
@@ -56,7 +58,7 @@ public class Generator {
       output += "    mov rax, 1\n";
 
       output += "l" + currLabel + "End:\n";
-      push("rax");
+      push("rax", true);
 
       currLabel++;
     }
@@ -102,7 +104,7 @@ public class Generator {
       currLabel++;
     }
 
-    push("rax");
+    push("rax", true);
   }
 
   private void generateExpression(Expression expression) {
@@ -124,9 +126,8 @@ public class Generator {
       output += "    add rsp, " + popCount * 8 + "\n";
       stackSize -= popCount;
 
-      Iterator<Entry<String, Integer>> iterator = variables.entrySet().iterator();
-      for (int i = 0; i < scopes.lastElement(); i++) iterator.next();
-      for (int i = 0; i < popCount; i++) variables.remove(iterator.next().getKey());
+      Object[] variableArray = variables.keySet().toArray();
+      if (popCount > 0) variables.keySet().removeAll(Arrays.asList(variableArray).subList(variableArray.length-popCount, variableArray.length-1));
 
       scopes.pop();
     } else if (statement.object() instanceof StatementStop statementStop) {
@@ -139,7 +140,7 @@ public class Generator {
 
       if (statementSet.expression() == null) {
         output += "    mov rax, 0\n";
-        push("rax");
+        push("rax", true);
       } else generateExpression(statementSet.expression());
 
       variables.put(statementSet.identifier().value(), stackSize);
@@ -147,9 +148,16 @@ public class Generator {
       if (!variables.containsKey(statementAssignment.identifier().value())) generateError(statementAssignment.identifier(), "generation: undeclared variable '" + statementAssignment.identifier().value() + "'");
 
       generateExpression(statementAssignment.expression());
-      variables.put(statementAssignment.identifier().value(), stackSize);
-    } else if (statement.object() instanceof Branch statementCondition) {
-      generateExpression(statementCondition.condition());
+
+      int shiftSize = (stackSize - variables.get(statementAssignment.identifier().value())) * 8;
+      pop("rax");
+      output += "    add rsp, " + shiftSize + "\n";
+      push("rax", false);
+      output += "    sub rsp, " + (shiftSize - 8) + "\n";
+
+      //variables.put(statementAssignment.identifier().value(), stackSize);
+    } else if (statement.object() instanceof Branch branch) {
+      generateExpression(branch.condition());
 
       int label = currLabel;
       currLabel++;
@@ -161,11 +169,27 @@ public class Generator {
       output += "    jmp l" + label + "False\n";
 
       output += "l" + label + "True:\n";
-      generateStatement(statementCondition.statement());
+      generateStatement(branch.statement());
       output += "    jmp l" + label + "End\n";
 
       output += "l" + label + "False:\n";
-      if (statementCondition.statementElse() != null) generateStatement(statementCondition.statementElse());
+      if (branch.statementElse() != null) generateStatement(branch.statementElse());
+
+      output += "l" + label + "End:\n";
+    } else if (statement.object() instanceof Loop loop) {
+      int label = currLabel;
+      currLabel++;
+
+      output += "l" + label + "Start:\n";
+      generateExpression(loop.condition());
+
+      pop("rax");
+
+      output += "    cmp rax, 1\n";
+      output += "    jne l" + label + "End\n";
+
+      generateStatement(loop.statement());
+      output += "    jmp l" + label + "Start\n";
 
       output += "l" + label + "End:\n";
     }
@@ -185,9 +209,9 @@ public class Generator {
   }
 
 
-  private void push(String register) {
+  private void push(String register, boolean incStackSize) {
     output += "    push " + register + "\n";
-    stackSize++;
+    if (incStackSize) stackSize++;
   }
 
   private void pop(String register) {

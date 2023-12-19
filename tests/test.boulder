@@ -12,7 +12,15 @@ test = 20;
   set test2 = 32;
   (test2 == 32) stop(test2);
 } \ {
-  (true == true) test = 2;
+  (true == true) test = 4;
 }
 
-stop(test + 5);
+set i = test;
+num = 1;
+
+~(i > 0) {
+  num = 2 * num;
+  i = i - 1;
+}
+
+stop(num + 5);

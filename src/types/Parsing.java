@@ -64,6 +64,11 @@ public interface Parsing {
     Statement statementElse
   ) {}
 
+  public record Loop(
+    Expression condition,
+    Statement statement
+  ) {}
+
   public record StatementAssignment(
     Token identifier,
     Expression expression
@@ -83,7 +88,7 @@ public interface Parsing {
   ) {}
 
   public record Statement(
-    // StatementSet || StatementStop || StatementAssignment || Scope || Branch
+    // StatementSet || StatementStop || StatementAssignment || Scope || Branch || Loop
     Object object
   ) {}
 

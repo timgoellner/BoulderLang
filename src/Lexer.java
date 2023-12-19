@@ -122,6 +122,9 @@ public class Lexer {
         case '\\':
           tokens.add(new Token(TokenType.backslash, null, row, column));
           break;
+        case '~':
+          tokens.add(new Token(TokenType.tilde, null, row, column));
+          break;
       }
 
       if (currChar == '\n') { row++; column = 0; }

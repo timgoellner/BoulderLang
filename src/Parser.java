@@ -172,9 +172,25 @@ public class Parser {
         statementElse = parseStatement();
       }
 
-      Branch statementCondition = new Branch(expression, statement, statementElse);
+      Branch branch = new Branch(expression, statement, statementElse);
 
-      return new Statement(statementCondition);
+      return new Statement(branch);
+    } else if (get().type() == TokenType.tilde) {
+      consume();
+
+      if (get() == null || get().type() != TokenType.parenthesesOpen) generateError("parsing: expected '('");
+      consume();
+
+      Expression expression = parseExpression(1);
+
+      if (get() == null || get().type() != TokenType.parenthesesClosed) generateError("parsing: expected ')'");
+      consume();
+
+      Statement statement = parseStatement();
+
+      Loop loop = new Loop(expression, statement);
+
+      return new Statement(loop);
     }
 
     return null;

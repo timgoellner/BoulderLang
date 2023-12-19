@@ -99,6 +99,15 @@ A branch executing a *Statement* when its condition *Expression* is `true`. Opti
 \ result = false;
 ```
 
+### Loop
+A loop that executes a *Statement* if its condition *Expression* is `true`, and then jumps back to its beginning, prefixed with `~`.
+```
+~(i > 0) {
+  num = num*num;
+  i = i - 1;
+};
+```
+
 ### Assignment Statement
 A *Statement* setting an already initialised *Identifier* equal to an *Expression*.
 ```
@@ -127,5 +136,5 @@ exit(32);
 ```
 
 ### *Statement (group class)*
-Either *Set Statement*, *Assignment Statement*, *Stop Statement*, *Branch* or *Scope*.
+Either *Set Statement*, *Assignment Statement*, *Stop Statement*, *Branch*, *Scope* or *Loop*.
 
