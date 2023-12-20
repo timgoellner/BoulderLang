@@ -74,6 +74,10 @@ public interface Parsing {
     Expression expression
   ) {}
 
+  public record StatementPrint(
+    Expression expression
+  ) {}
+
   public record StatementSet(
     Token identifier,
     Expression expression
@@ -88,7 +92,7 @@ public interface Parsing {
   ) {}
 
   public record Statement(
-    // StatementSet || StatementStop || StatementAssignment || Scope || Branch || Loop
+    // StatementSet || StatementPrint || StatementStop || StatementAssignment || Scope || Branch || Loop
     Object object
   ) {}
 

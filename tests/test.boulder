@@ -1,26 +1,12 @@
-set num = 10 + 2 * 3;
-num = (4 + num) / 4;
+set i = 9;
+set j = 9;
 
+~(i >= 0) {
+  ~(j >= 0) {
+    print(j);
+    j = j - 1;
+  }
 
-set test;
-{
-  test = num <= 12 | false;
-}
-
-test = 20;
-(!(test >= 22 - 2)) {
-  set test2 = 32;
-  (test2 == 32) stop(test2);
-} \ {
-  (true == true) test = 4;
-}
-
-set i = test;
-num = 1;
-
-~(i > 0) {
-  num = 2 * num;
   i = i - 1;
+  j = 9;
 }
-
-stop(num + 5);

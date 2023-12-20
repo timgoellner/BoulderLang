@@ -33,6 +33,10 @@ public class Lexer {
             tokens.add(new Token(TokenType.kwSet, null, row, column));
             buffer = "";
             break;
+          case "print":
+            tokens.add(new Token(TokenType.kwPrint, null, row, column));
+            buffer = "";
+            break;
           case "true":
             tokens.add(new Token(TokenType.bool, "true", row, column));
             buffer = "";

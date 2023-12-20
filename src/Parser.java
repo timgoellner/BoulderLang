@@ -142,6 +142,23 @@ public class Parser {
       StatementSet statementSet = new StatementSet(identifier, expression);
 
       return new Statement(statementSet);
+    } else if (get().type() == TokenType.kwPrint) {
+      consume();
+
+      if (get() == null || get().type() != TokenType.parenthesesOpen) generateError("parsing: expected '('");
+      consume();
+
+      Expression expression = parseExpression(1);
+
+      if (get() == null || get().type() != TokenType.parenthesesClosed) generateError("parsing: expected ')'");
+      consume();
+
+      if (get() == null || get().type() != TokenType.semicolon) generateError("parsing: expected ';'");
+      consume();
+
+      StatementPrint statementPrint = new StatementPrint(expression);
+
+      return new Statement(statementPrint);
     } else if (get().type() == TokenType.identifier) {
       Token identifier = consume();
 

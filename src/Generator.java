@@ -3,11 +3,8 @@ import types.Parsing.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Stack;
-import java.util.Map.Entry;
 import java.util.Arrays;
-import java.util.Iterator;
 
 public class Generator {
   private Root root;
@@ -47,7 +44,7 @@ public class Generator {
     } else if (term.object() instanceof TermNegated termNegated) {
       generateTerm(termNegated.term());
 
-      pop("rax");
+      pop("rax", true);
 
       output += "    cmp rax, 0\n";
       output += "    je l" + currLabel + "True\n";
@@ -68,8 +65,8 @@ public class Generator {
     generateExpression(expressionBinary.expressionRight());
     generateExpression(expressionBinary.expressionLeft());
 
-    pop("rax");
-    pop("rbx");
+    pop("rax", true);
+    pop("rbx", true);
 
     if (expressionBinary.type() == ExpressionBinaryType.addition) output += "    add rax, rbx\n";
     else if (expressionBinary.type() == ExpressionBinaryType.subtraction) output += "    sub rax, rbx\n";
@@ -119,7 +116,10 @@ public class Generator {
     if (statement.object() instanceof Scope scope) {
       scopes.push(variables.size());
 
-      for (Statement childStatement : scope.statements()) generateStatement(childStatement);
+      for (Statement childStatement : scope.statements()) {
+        output += "    ; " + childStatement.object().getClass().getSimpleName() + "\n";
+        generateStatement(childStatement);
+      }
 
       int popCount = variables.size() - scopes.lastElement();
 
@@ -133,7 +133,7 @@ public class Generator {
     } else if (statement.object() instanceof StatementStop statementStop) {
       generateExpression(statementStop.expression());
       output += "    mov rax, 60\n";
-      pop("rdi");
+      pop("rdi", true);
       output += "    syscall\n";
     } else if (statement.object() instanceof StatementSet statementSet) {
       if (variables.containsKey(statementSet.identifier().value())) generateError(statementSet.identifier(), "generation: variable already declared '" + statementSet.identifier().value() + "'");
@@ -150,19 +150,33 @@ public class Generator {
       generateExpression(statementAssignment.expression());
 
       int shiftSize = (stackSize - variables.get(statementAssignment.identifier().value())) * 8;
-      pop("rax");
+      pop("rax", true);
       output += "    add rsp, " + shiftSize + "\n";
       push("rax", false);
       output += "    sub rsp, " + (shiftSize - 8) + "\n";
+    } else if (statement.object() instanceof StatementPrint statementPrint) {
+      generateExpression(statementPrint.expression());
 
-      //variables.put(statementAssignment.identifier().value(), stackSize);
+      pop("rdx", true);
+      push("rdx", true);
+      output += "    add rdx, 48\n";
+      push("rdx", true);
+
+      output += "    mov rsi, rsp\n";
+      output += "    mov rax, 1\n";
+      output += "    mov edi, 1\n";
+      output += "    mov rdx, 1\n";
+      output += "    syscall\n";
+
+      output += "    add rsp, 16\n";
+      stackSize -= 2;
     } else if (statement.object() instanceof Branch branch) {
       generateExpression(branch.condition());
 
       int label = currLabel;
       currLabel++;
 
-      pop("rax");
+      pop("rax", true);
 
       output += "    cmp rax, 1\n";
       output += "    je l" + label + "True\n";
@@ -183,7 +197,7 @@ public class Generator {
       output += "l" + label + "Start:\n";
       generateExpression(loop.condition());
 
-      pop("rax");
+      pop("rax", true);
 
       output += "    cmp rax, 1\n";
       output += "    jne l" + label + "End\n";
@@ -214,9 +228,9 @@ public class Generator {
     if (incStackSize) stackSize++;
   }
 
-  private void pop(String register) {
+  private void pop(String register, boolean decStackSize) {
     output += "    pop " + register + "\n";
-    stackSize--;
+    if (decStackSize) stackSize--;
   }
 
   private void generateError(Token token, String msg) {
