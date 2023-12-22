@@ -10,7 +10,7 @@ Compilation generates assembly code, compiles it with [nasm](https://nasm.us/) a
 $ cat main.boulder
 exit(0);
 $ java -cp build Main main.boulder
-$ ./bin/output.exe
+$ ./main
 ```
 <br>
 

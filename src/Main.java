@@ -9,8 +9,6 @@ import types.Parsing.Root;
 
 public class Main {
   public static void main(String args[]) {
-    args = new String[] { "tests/test.boulder" };
-
     if (args.length == 0 || !args[0].endsWith(".boulder")) {
       System.out.print("please provide a valid file (?.boulder)");
       return;
@@ -20,7 +18,7 @@ public class Main {
     String content;
     try { content = Files.readString(filePath); }
     catch (IOException error) {
-      System.out.print("error reading file " + args[0] + "\nplease provide a valid file (?.boulder)");
+      System.out.println("error reading file " + args[0] + "\nplease provide a valid file (?.boulder)");
       return;
     }
 
@@ -33,10 +31,10 @@ public class Main {
     Generator generator = new Generator(nodeRoot);
     String output = generator.generate();
 
-    filePath = Path.of("bin/output.asm");
+    Path outFilePath = Path.of("out/output.asm");
     try {
-      if(!Files.exists(filePath)) Files.writeString(filePath, output, StandardOpenOption.CREATE);
-      else Files.writeString(filePath, output, StandardOpenOption.TRUNCATE_EXISTING);
+      if(!Files.exists(outFilePath)) Files.writeString(outFilePath, output, StandardOpenOption.CREATE);
+      else Files.writeString(outFilePath, output, StandardOpenOption.TRUNCATE_EXISTING);
     } catch (IOException error) {
       System.out.print("error writing to file");
       return;
@@ -44,8 +42,8 @@ public class Main {
 
     Runtime runntime = Runtime.getRuntime();
     try {
-      runntime.exec("nasm -felf64 bin/output.asm");
-      runntime.exec("ld -o bin/output.exe bin/output.o");
+      runntime.exec("nasm -felf64 out/output.asm");
+      runntime.exec("ld -o " + filePath.toAbsolutePath().toString().split("\\.")[0] + " out/output.o");
     } catch (IOException error) {
       System.out.print("error compiling assembly");
       return;

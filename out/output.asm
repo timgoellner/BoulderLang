@@ -8,7 +8,7 @@ _start:
     mov rax, 1
     push rax
     ; StatementSet
-    mov rax, 7
+    mov rax, 12
     push rax
     ; StatementSet
     mov rax, 0
@@ -87,36 +87,6 @@ l2Print:
     add rsp, 8
     jmp l0Start
 l0End:
-    ; StatementPrint
-    mov rax, 2
-    push rax
-    mov rax, 0
-    push rax
-    pop rax
-    pop rbx
-    sub rax, rbx
-    push rax
-    mov bl, 10
-    pop rax
-    push 0
-    push 10
-l3Convert:
-    div bl
-    mov dl, ah
-    add dl, 48
-    push rdx
-    xor ah, ah
-    cmp al, 0
-    jnz l3Convert
-l3Print:
-    mov rsi, rsp
-    mov rax, 1
-    mov edi, 1
-    mov rdx, 1
-    syscall
-    pop rdx
-    cmp dx, 0
-    jnz l3Print
     mov rax, 60
     mov rdi, 0
     syscall
