@@ -2,20 +2,25 @@ section .text
     global _start
 _start:
     ; StatementSet
-    mov rax, 9
+    mov rax, 0
     push rax
     ; StatementSet
-    mov rax, 9
+    mov rax, 1
+    push rax
+    ; StatementSet
+    mov rax, 7
+    push rax
+    ; StatementSet
+    mov rax, 0
     push rax
     ; Loop
 l0Start:
-    mov rax, 0
-    push rax
-    push QWORD [rsp + 16]
+    push QWORD [rsp + 8]
+    push QWORD [rsp + 8]
     pop rax
     pop rbx
     cmp rax, rbx
-    jge l1True
+    jl l1True
     mov rax, 0
     jmp l1End
 l1True:
@@ -25,73 +30,93 @@ l1End:
     pop rax
     cmp rax, 1
     jne l0End
-    ; Loop
-l2Start:
-    mov rax, 0
-    push rax
-    push QWORD [rsp + 8]
-    pop rax
-    pop rbx
-    cmp rax, rbx
-    jge l3True
-    mov rax, 0
-    jmp l3End
-l3True:
-    mov rax, 1
-l3End:
-    push rax
-    pop rax
-    cmp rax, 1
-    jne l2End
-    ; StatementPrint
-    push QWORD [rsp + 0]
-    pop rdx
-    push rdx
-    add rdx, 48
-    push rdx
-    mov rsi, rsp
-    mov rax, 1
-    mov edi, 1
-    mov rdx, 1
-    syscall
-    add rsp, 16
+    ; StatementSet
+    push QWORD [rsp + 24]
     ; StatementAssignment
-    mov rax, 1
+    push QWORD [rsp + 24]
+    pop rax
+    add rsp, 40
     push rax
+    sub rsp, 32
+    ; StatementAssignment
+    push QWORD [rsp + 24]
     push QWORD [rsp + 8]
     pop rax
     pop rbx
-    sub rax, rbx
+    add rax, rbx
     push rax
     pop rax
-    add rsp, 8
+    add rsp, 32
     push rax
-    sub rsp, 0
-    add rsp, 0
-    jmp l2Start
-l2End:
+    sub rsp, 24
     ; StatementAssignment
     mov rax, 1
     push rax
     push QWORD [rsp + 16]
     pop rax
     pop rbx
-    sub rax, rbx
+    add rax, rbx
     push rax
     pop rax
     add rsp, 16
     push rax
     sub rsp, 8
-    ; StatementAssignment
-    mov rax, 9
-    push rax
+    ; StatementPrint
+    push QWORD [rsp + 32]
+    mov bl, 10
     pop rax
+    push 0
+    push 10
+l2Convert:
+    div bl
+    mov dl, ah
+    add dl, 48
+    push rdx
+    xor ah, ah
+    cmp al, 0
+    jnz l2Convert
+l2Print:
+    mov rsi, rsp
+    mov rax, 1
+    mov edi, 1
+    mov rdx, 1
+    syscall
+    pop rdx
+    cmp dx, 0
+    jnz l2Print
     add rsp, 8
-    push rax
-    sub rsp, 0
-    add rsp, 0
     jmp l0Start
 l0End:
+    ; StatementPrint
+    mov rax, 2
+    push rax
+    mov rax, 0
+    push rax
+    pop rax
+    pop rbx
+    sub rax, rbx
+    push rax
+    mov bl, 10
+    pop rax
+    push 0
+    push 10
+l3Convert:
+    div bl
+    mov dl, ah
+    add dl, 48
+    push rdx
+    xor ah, ah
+    cmp al, 0
+    jnz l3Convert
+l3Print:
+    mov rsi, rsp
+    mov rax, 1
+    mov edi, 1
+    mov rdx, 1
+    syscall
+    pop rdx
+    cmp dx, 0
+    jnz l3Print
     mov rax, 60
     mov rdi, 0
     syscall

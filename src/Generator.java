@@ -157,6 +157,41 @@ public class Generator {
     } else if (statement.object() instanceof StatementPrint statementPrint) {
       generateExpression(statementPrint.expression());
 
+      output += "    mov bl, 10\n";
+      pop("rax", true);
+
+      output += "    push 0\n";
+      output += "    push 10\n";
+
+      output += "l" + currLabel + "Convert:\n";
+      output += "    div bl\n";
+
+      output += "    mov dl, ah\n";
+      output += "    add dl, 48\n";
+      push("rdx", true);
+
+      output += "    xor ah, ah\n";
+      output += "    cmp al, 0\n";
+      output += "    jnz l" + currLabel + "Convert\n";
+
+      output += "l" + currLabel + "Print:\n";
+
+      output += "    mov rsi, rsp\n";
+      output += "    mov rax, 1\n";
+      output += "    mov edi, 1\n";
+      output += "    mov rdx, 1\n";
+      output += "    syscall\n";
+
+      pop("rdx", true);
+      output += "    cmp dx, 0\n";
+      output += "    jnz l" + currLabel + "Print\n";
+
+      //output += "    add rsp, 8\n";
+      stackSize -= 0;
+
+      currLabel++;
+
+      /*
       pop("rdx", true);
       push("rdx", true);
       output += "    add rdx, 48\n";
@@ -170,6 +205,7 @@ public class Generator {
 
       output += "    add rsp, 16\n";
       stackSize -= 2;
+       */
     } else if (statement.object() instanceof Branch branch) {
       generateExpression(branch.condition());
 

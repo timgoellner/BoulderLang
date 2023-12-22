@@ -108,6 +108,12 @@ A loop that executes a *Statement* if its condition *Expression* is `true`, and 
 };
 ```
 
+### Print Statement
+A *Statement* printing an *Expression* to stdout suffixed with a line break.
+```
+print(34);
+```
+
 ### Assignment Statement
 A *Statement* setting an already initialised *Identifier* equal to an *Expression*.
 ```
