@@ -19,13 +19,13 @@ $ ./main
 ```
 set number = 15;
 
-(number > 20) exit(0);
+(number > 20) stop(0);
 \ (number > 10) {
   set code = 1;
-  exit(code);
-} \ exit(2);
+  stop(code);
+} \ stop(2);
 ```
-This programm exits with `1`
+This programm stops with `1`
 <br><br>
 
 ## Language Reference

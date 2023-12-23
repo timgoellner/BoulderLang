@@ -165,6 +165,11 @@ public class Generator {
       output += "    push 0\n";
       output += "    push 10\n";
 
+      output += "    cmp rax, 0\n";
+      output += "    jns l" + currLabel + "Convert\n";
+      output += "    mov rcx, 1\n";
+      output += "    neg rax\n";
+
       output += "l" + currLabel + "Convert:\n";
       output += "    div ebx\n";
 
@@ -174,6 +179,11 @@ public class Generator {
       output += "    xor edx, edx\n";
       output += "    cmp eax, 0\n";
       output += "    jnz l" + currLabel + "Convert\n";
+
+      output += "    cmp rcx, 1\n";
+      output += "    jne l" + currLabel + "Print\n";
+      output += "    xor rcx, rcx\n";
+      output += "    push 45\n";
 
       output += "l" + currLabel + "Print:\n";
 
