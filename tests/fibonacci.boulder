@@ -1,7 +1,7 @@
 set a = 0;
 set b = 1;
 
-set num = 12;
+set num = 40;
 set cnt = 0;
 
 ~(cnt < num) {

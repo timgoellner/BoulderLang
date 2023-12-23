@@ -4,7 +4,6 @@ import types.Parsing.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Stack;
-import java.math.BigInteger;
 import java.util.Arrays;
 
 public class Generator {
@@ -188,26 +187,7 @@ public class Generator {
       output += "    cmp dx, 0\n";
       output += "    jnz l" + currLabel + "Print\n";
 
-      //output += "    add rsp, 8\n";
-      stackSize -= 0;
-
       currLabel++;
-
-      /*
-      pop("rdx", true);
-      push("rdx", true);
-      output += "    add rdx, 48\n";
-      push("rdx", true);
-
-      output += "    mov rsi, rsp\n";
-      output += "    mov rax, 1\n";
-      output += "    mov edi, 1\n";
-      output += "    mov rdx, 1\n";
-      output += "    syscall\n";
-
-      output += "    add rsp, 16\n";
-      stackSize -= 2;
-       */
     } else if (statement.object() instanceof Branch branch) {
       generateExpression(branch.condition());
 

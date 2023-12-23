@@ -8,7 +8,7 @@ Compilation generates assembly code, compiles it with [nasm](https://nasm.us/) a
 
 ```
 $ cat main.boulder
-exit(0);
+stop(0);
 $ java -cp build Main main.boulder
 $ ./main
 ```
@@ -32,7 +32,7 @@ This programm exits with `1`
 This is what the language supports so far.
 
 ### Integer Literal
-A sequence of decimal digits.
+A sequence of decimal digits up to 2^32-1.
 ```
 327
 ```
