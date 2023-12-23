@@ -4,6 +4,7 @@ import types.Parsing.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Stack;
+import java.math.BigInteger;
 import java.util.Arrays;
 
 public class Generator {
@@ -28,6 +29,8 @@ public class Generator {
 
   private void generateTerm(Term term) {
     if (term.object() instanceof IntegerLiteral integerLiteral) {
+      if (Double.parseDouble(integerLiteral.integer().value()) > 4294967295d) generateError(integerLiteral.integer(), "generation: number literal out of range 2^32-1");
+
       output += "    mov rax, " + integerLiteral.integer().value() + "\n";
       push("rax", true);
     } else if (term.object() instanceof BooleanLiteral booleanLiteral) {
@@ -157,21 +160,20 @@ public class Generator {
     } else if (statement.object() instanceof StatementPrint statementPrint) {
       generateExpression(statementPrint.expression());
 
-      output += "    mov bl, 10\n";
+      output += "    mov ebx, 10\n";
       pop("rax", true);
 
       output += "    push 0\n";
       output += "    push 10\n";
 
       output += "l" + currLabel + "Convert:\n";
-      output += "    div bl\n";
+      output += "    div ebx\n";
 
-      output += "    mov dl, ah\n";
-      output += "    add dl, 48\n";
+      output += "    add edx, 48\n";
       push("rdx", true);
 
-      output += "    xor ah, ah\n";
-      output += "    cmp al, 0\n";
+      output += "    xor edx, edx\n";
+      output += "    cmp eax, 0\n";
       output += "    jnz l" + currLabel + "Convert\n";
 
       output += "l" + currLabel + "Print:\n";

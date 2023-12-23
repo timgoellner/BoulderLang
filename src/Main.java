@@ -12,7 +12,7 @@ public class Main {
     if (args.length == 0 || !args[0].endsWith(".boulder")) {
       System.out.print("please provide a valid file (?.boulder)");
       return;
-    } 
+    }
 
     Path filePath = Path.of(args[0]);
     String content;

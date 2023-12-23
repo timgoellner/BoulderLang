@@ -48,7 +48,7 @@ public class Lexer {
         }
 
         try {
-          Integer.parseInt(buffer);
+          Double.parseDouble(buffer);
 
           tokens.add(new Token(TokenType.integer, buffer, row, column));
           buffer = "";
