@@ -17,12 +17,12 @@ public class Lexer {
     int row = 1;
     int column = 0;
 
+    boolean inString = false;
+
     while (raw.length() > 0) {
       char currChar = consume();
 
-      
-
-      if (Character.isAlphabetic(currChar) ||  Character.isDigit(currChar)) buffer += currChar;
+      if (Character.isAlphabetic(currChar) ||  Character.isDigit(currChar) || inString) buffer += currChar;
       else if (buffer.length() > 0) {
         switch (buffer) {
           case "stop":
@@ -58,6 +58,15 @@ public class Lexer {
           tokens.add(new Token(TokenType.identifier, buffer, row, column));
           buffer = "";
         }
+      }
+
+      if (inString) {
+        if (currChar == '"') {
+          tokens.add(new Token(TokenType.string, buffer.substring(0, buffer.length()-1), row, column));
+          buffer = "";
+          inString = false;
+        }
+        continue;
       }
 
       switch (currChar) {
@@ -128,6 +137,9 @@ public class Lexer {
           break;
         case '~':
           tokens.add(new Token(TokenType.tilde, null, row, column));
+          break;
+        case '"':
+          inString = true;
           break;
       }
 

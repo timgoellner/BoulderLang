@@ -19,6 +19,8 @@ public class Parser {
 
     if (get().type() == TokenType.integer) {
       termObject = new IntegerLiteral(consume());
+    } else if (get().type() == TokenType.string) {
+      termObject = new StringLiteral(consume());
     } else if (get().type() == TokenType.bool) {
       termObject = new BooleanLiteral(consume());
     } else if (get().type() == TokenType.identifier) {

@@ -7,6 +7,7 @@ public interface Lexing {
     kwPrint,
 
     integer,
+    string,
     bool,
     identifier,
 

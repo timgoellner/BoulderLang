@@ -1,5 +1,6 @@
 import types.Lexing.Token;
 import types.Parsing.*;
+import types.Generating.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -12,8 +13,10 @@ public class Generator {
 
   private int currLabel;
   private int stackSize;
-  //          name  , stack location
-  private Map<String, Integer> variables;
+  //          name
+  private Map<String, Variable> variables;
+  private Stack<Variable> recentTerms;
+  private Token recentToken;
   //            initial variables
   private Stack<Integer> scopes;
 
@@ -21,30 +24,49 @@ public class Generator {
     this.root = root;
     this.output = "section .text\n    global _start\n_start:\n";
 
-    this.variables = new LinkedHashMap<String, Integer>();
+    this.variables = new LinkedHashMap<String, Variable>();
+    this.recentTerms = new Stack<Variable>();
+    this.recentToken = null;
     this.scopes = new Stack<Integer>();
   }
 
 
   private void generateTerm(Term term) {
     if (term.object() instanceof IntegerLiteral integerLiteral) {
-      if (Double.parseDouble(integerLiteral.integer().value()) > 4294967295d) generateError(integerLiteral.integer(), "generation: number literal out of range 2^32-1");
+      recentToken = integerLiteral.integer();
+
+      if (Double.parseDouble(integerLiteral.integer().value()) > 4294967295d) generateError("generation: integer literal out of range 2^32-1");
 
       output += "    mov rax, " + integerLiteral.integer().value() + "\n";
       push("rax", true);
+
+      recentTerms.push(new Variable(VariableType.integer, stackSize, 1));
+    } else if (term.object() instanceof StringLiteral StringLiteral) {
+      
     } else if (term.object() instanceof BooleanLiteral booleanLiteral) {
+      recentToken = booleanLiteral.bool();
+
       output += "    mov rax, " + ((booleanLiteral.bool().value() == "true") ? "1" : "0") + "\n";
       push("rax", true);
-    } else if (term.object() instanceof Identifier identifier) {
-      Object variableLocation = variables.get(identifier.identifier().value());
-      
-      if (variableLocation == null) generateError(identifier.identifier(), "generation: undeclared variable '" + identifier.identifier().value() + "'");
 
-      push("QWORD [rsp + " + ((stackSize - ((Integer) variableLocation)) * 8) + "]", true);
+      recentTerms.push(new Variable(VariableType.bool, stackSize, 1));
+    } else if (term.object() instanceof Identifier identifier) {
+      recentToken = identifier.identifier();
+
+      Object variableObj = variables.get(identifier.identifier().value());
+      
+      if (variableObj == null) generateError("generation: undeclared variable '" + identifier.identifier().value() + "'");
+
+      Variable variable = (Variable) variableObj;
+      push("QWORD [rsp + " + ((stackSize - variable.stackLocation()) * 8) + "]", true);
+
+      recentTerms.push(variable.withStackLocation(stackSize));
     } else if (term.object() instanceof Parentheses parentheses) {
       generateExpression(parentheses.expression());
     } else if (term.object() instanceof TermNegated termNegated) {
       generateTerm(termNegated.term());
+
+      if (recentTerms.peek().type() != VariableType.bool) generateError("generation: not operator is undefined for type " + recentTerms.peek().type().name());
 
       pop("rax", true);
 
@@ -70,6 +92,12 @@ public class Generator {
     pop("rax", true);
     pop("rbx", true);
 
+    Variable expressionLeft = recentTerms.pop();
+    Variable expressionRight = recentTerms.pop();
+    if (expressionLeft.type() != expressionRight.type()) generateError("generation: " + expressionBinary.type().name() + " operator is undefined for types " + expressionLeft.type().name() + " and " + expressionRight.type().name());
+
+    VariableType variableType = expressionLeft.type();
+
     if (expressionBinary.type() == ExpressionBinaryType.addition) output += "    add rax, rbx\n";
     else if (expressionBinary.type() == ExpressionBinaryType.subtraction) output += "    sub rax, rbx\n";
     else if (expressionBinary.type() == ExpressionBinaryType.multiplication) output += "    mul rbx\n";
@@ -82,14 +110,21 @@ public class Generator {
         output += "    cmp rax, 1\n";
         output += "    je l" + currLabel + "True\n";
       } else {
+
         output += "    cmp rax, rbx\n";
 
         if (expressionBinary.type() == ExpressionBinaryType.equal) output += "    je l" + currLabel + "True\n";
         else if (expressionBinary.type() == ExpressionBinaryType.notEqual) output += "    jne l" + currLabel + "True\n";
-        else if (expressionBinary.type() == ExpressionBinaryType.less) output += "    jl l" + currLabel + "True\n";
-        else if (expressionBinary.type() == ExpressionBinaryType.lessEqual) output += "    jle l" + currLabel + "True\n";
-        else if (expressionBinary.type() == ExpressionBinaryType.greater) output += "    jg l" + currLabel + "True\n";
-        else if (expressionBinary.type() == ExpressionBinaryType.greaterEqual) output += "    jge l" + currLabel + "True\n";
+        else {
+          if (variableType == VariableType.bool) generateError("generation: " + expressionBinary.type().name() + " operator is undefined for type " + variableType.name());
+
+          if (expressionBinary.type() == ExpressionBinaryType.less) output += "    jl l" + currLabel + "True\n";
+          else if (expressionBinary.type() == ExpressionBinaryType.lessEqual) output += "    jle l" + currLabel + "True\n";
+          else if (expressionBinary.type() == ExpressionBinaryType.greater) output += "    jg l" + currLabel + "True\n";
+          else if (expressionBinary.type() == ExpressionBinaryType.greaterEqual) output += "    jge l" + currLabel + "True\n";
+        }
+
+        variableType = VariableType.bool;
       }
 
       output += "    mov rax, 0\n";
@@ -104,6 +139,7 @@ public class Generator {
     }
 
     push("rax", true);
+    recentTerms.push(new Variable(variableType, stackSize, 1));
   }
 
   private void generateExpression(Expression expression) {
@@ -138,20 +174,24 @@ public class Generator {
       pop("rdi", true);
       output += "    syscall\n";
     } else if (statement.object() instanceof StatementSet statementSet) {
-      if (variables.containsKey(statementSet.identifier().value())) generateError(statementSet.identifier(), "generation: variable already declared '" + statementSet.identifier().value() + "'");
+      recentToken = statementSet.identifier();
+
+      if (variables.containsKey(statementSet.identifier().value())) generateError("generation: variable already declared '" + statementSet.identifier().value() + "'");
 
       if (statementSet.expression() == null) {
         output += "    mov rax, 0\n";
         push("rax", true);
       } else generateExpression(statementSet.expression());
 
-      variables.put(statementSet.identifier().value(), stackSize);
+      variables.put(statementSet.identifier().value(), recentTerms.pop());
     } else if (statement.object() instanceof StatementAssignment statementAssignment) {
-      if (!variables.containsKey(statementAssignment.identifier().value())) generateError(statementAssignment.identifier(), "generation: undeclared variable '" + statementAssignment.identifier().value() + "'");
+      recentToken = statementAssignment.identifier();
+
+      if (!variables.containsKey(statementAssignment.identifier().value())) generateError("generation: undeclared variable '" + statementAssignment.identifier().value() + "'");
 
       generateExpression(statementAssignment.expression());
 
-      int shiftSize = (stackSize - variables.get(statementAssignment.identifier().value())) * 8;
+      int shiftSize = (stackSize - variables.get(statementAssignment.identifier().value()).stackLocation()) * 8;
       pop("rax", true);
       output += "    add rsp, " + shiftSize + "\n";
       push("rax", false);
@@ -261,8 +301,8 @@ public class Generator {
     if (decStackSize) stackSize--;
   }
 
-  private void generateError(Token token, String msg) {
-    System.out.println(token.row() + ":" + token.column() + ": ERROR: " + msg);
+  private void generateError(String msg) {
+    System.out.println(recentToken.row() + ":" + recentToken.column() + ": ERROR: " + msg);
     System.exit(1);
   }
 }

@@ -26,6 +26,10 @@ public interface Parsing {
     Token integer
   ) {}
 
+  public record StringLiteral(
+    Token string
+  ) {}
+
   public record BooleanLiteral(
     Token bool
   ) {}

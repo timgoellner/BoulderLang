@@ -1,3 +1,4 @@
-set test = -3213;
+set test = 32 >= true;
+set test2 = true;
 
-print(test+321);
+print(test);
