@@ -190,8 +190,11 @@ public class Generator {
       if (!variables.containsKey(statementAssignment.identifier().value())) generateError("generation: undeclared variable '" + statementAssignment.identifier().value() + "'");
 
       generateExpression(statementAssignment.expression());
+      Variable variable = variables.get(statementAssignment.identifier().value());
+      variable = variable.withType(recentTerms.pop().type());
+      variables.put(statementAssignment.identifier().value(), variable);
 
-      int shiftSize = (stackSize - variables.get(statementAssignment.identifier().value()).stackLocation()) * 8;
+      int shiftSize = (stackSize - variable.stackLocation()) * 8;
       pop("rax", true);
       output += "    add rsp, " + shiftSize + "\n";
       push("rax", false);

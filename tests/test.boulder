@@ -1,4 +1,7 @@
-set test = 32 >= true;
-set test2 = true;
+set test = 32;
+set test2 = 322;
+test = true;
+
+test = test != false;
 
 print(test);
