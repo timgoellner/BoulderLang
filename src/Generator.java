@@ -40,7 +40,7 @@ public class Generator {
       output += "    mov rax, " + integerLiteral.integer().value() + "\n";
       push("rax", true);
 
-      recentTerms.push(new Variable(VariableType.integer, stackSize, 1));
+      recentTerms.push(new Variable(VariableType.integer, stackSize));
     } else if (term.object() instanceof StringLiteral StringLiteral) {
       
     } else if (term.object() instanceof BooleanLiteral booleanLiteral) {
@@ -49,7 +49,7 @@ public class Generator {
       output += "    mov rax, " + ((booleanLiteral.bool().value() == "true") ? "1" : "0") + "\n";
       push("rax", true);
 
-      recentTerms.push(new Variable(VariableType.bool, stackSize, 1));
+      recentTerms.push(new Variable(VariableType.bool, stackSize));
     } else if (term.object() instanceof Identifier identifier) {
       recentToken = identifier.identifier();
 
@@ -139,7 +139,7 @@ public class Generator {
     }
 
     push("rax", true);
-    recentTerms.push(new Variable(variableType, stackSize, 1));
+    recentTerms.push(new Variable(variableType, stackSize));
   }
 
   private void generateExpression(Expression expression) {
