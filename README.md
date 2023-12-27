@@ -37,6 +37,12 @@ A sequence of decimal digits up to 2^32-1.
 327
 ```
 
+### String Literal
+A sequence of characters surrounded by double quotes.
+```
+"hello world"
+```
+
 ### Boolean Literal
 Either `true` or `false`, which are interpreted internally as `1` and `0`.
 ```
