@@ -1,7 +1,3 @@
-set test = 32;
-set test2 = 322;
-test = true;
-
-test = test != false;
+set test = "hello world";
 
 print(test);

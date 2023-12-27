@@ -35,30 +35,51 @@ public class Generator {
     if (term.object() instanceof IntegerLiteral integerLiteral) {
       recentToken = integerLiteral.integer();
 
-      if (Double.parseDouble(integerLiteral.integer().value()) > 4294967295d) generateError("generation: integer literal out of range 2^32-1");
+      if (Double.parseDouble(recentToken.value()) > 4294967295d) generateError("generation: integer literal out of range 2^32-1");
 
-      output += "    mov rax, " + integerLiteral.integer().value() + "\n";
+      output += "    mov rax, " + recentToken.value() + "\n";
       push("rax", true);
 
-      recentTerms.push(new Variable(VariableType.integer, stackSize));
-    } else if (term.object() instanceof StringLiteral StringLiteral) {
-      
+      recentTerms.push(new Variable(VariableType.integer, stackSize, 1));
+    } else if (term.object() instanceof StringLiteral stringLiteral) {
+      recentToken = stringLiteral.string();
+
+      char[] characters = recentToken.value().toCharArray();
+      Variable variable = new Variable(VariableType.string, stackSize+characters.length+1, characters.length);
+      recentTerms.push(variable);
+
+      output += "    mov rax, 0\n";
+      push("rax", true);
+
+      for (int i = characters.length-1; i >= 0; i--) {
+        output += "    mov rax, " + ((int) characters[i]) + "\n";
+        push("rax", true);
+      }
     } else if (term.object() instanceof BooleanLiteral booleanLiteral) {
       recentToken = booleanLiteral.bool();
 
-      output += "    mov rax, " + ((booleanLiteral.bool().value() == "true") ? "1" : "0") + "\n";
+      output += "    mov rax, " + ((recentToken.value() == "true") ? "1" : "0") + "\n";
       push("rax", true);
 
-      recentTerms.push(new Variable(VariableType.bool, stackSize));
+      recentTerms.push(new Variable(VariableType.bool, stackSize, 1));
     } else if (term.object() instanceof Identifier identifier) {
       recentToken = identifier.identifier();
 
-      Object variableObj = variables.get(identifier.identifier().value());
+      Object variableObj = variables.get(recentToken.value());
       
-      if (variableObj == null) generateError("generation: undeclared variable '" + identifier.identifier().value() + "'");
+      if (variableObj == null) generateError("generation: undeclared variable '" + recentToken.value() + "'");
 
       Variable variable = (Variable) variableObj;
-      push("QWORD [rsp + " + ((stackSize - variable.stackLocation()) * 8) + "]", true);
+      if (variable.type() == VariableType.string) {
+        output += "    mov rax, 0\n";
+        push("rax", true);
+        
+        for (int i = variable.length(); i >= 0; i--) {
+          push("QWORD [rsp + " + ((stackSize - variable.stackLocation() + i) * 8) + "]", true);
+        }
+      } else {
+        push("QWORD [rsp + " + ((stackSize - variable.stackLocation()) * 8) + "]", true);
+      }
 
       recentTerms.push(variable.withStackLocation(stackSize));
     } else if (term.object() instanceof Parentheses parentheses) {
@@ -97,12 +118,30 @@ public class Generator {
     if (expressionLeft.type() != expressionRight.type()) generateError("generation: " + expressionBinary.type().name() + " operator is undefined for types " + expressionLeft.type().name() + " and " + expressionRight.type().name());
 
     VariableType variableType = expressionLeft.type();
+    if (variableType == VariableType.string) generateError("generation: " + expressionBinary.type().name() + " operator is undefined for type " + variableType.name());
 
-    if (expressionBinary.type() == ExpressionBinaryType.addition) output += "    add rax, rbx\n";
-    else if (expressionBinary.type() == ExpressionBinaryType.subtraction) output += "    sub rax, rbx\n";
-    else if (expressionBinary.type() == ExpressionBinaryType.multiplication) output += "    mul rbx\n";
-    else if (expressionBinary.type() == ExpressionBinaryType.division) output += "    div rbx\n";
-    else {
+    boolean mathType = true;
+    switch (expressionBinary.type()) {
+      case addition:
+        output += "    add rax, rbx\n";
+        break;
+      case subtraction:
+        output += "    sub rax, rbx\n";
+        break;
+      case multiplication:
+        output += "    mul rbx\n";
+        break;
+      case division:
+        output += "    div rbx\n";
+        break;
+      default:
+        mathType = false;
+        break;
+    }
+
+    if (mathType && variableType == VariableType.bool) generateError("generation: " + expressionBinary.type().name() + " operator is undefined for type " + variableType.name());
+
+    if (!mathType) {
       if (expressionBinary.type() == ExpressionBinaryType.and || expressionBinary.type() == ExpressionBinaryType.or) {
         if (expressionBinary.type() == ExpressionBinaryType.and) output += "    and rax, rbx\n";
         else output += "    or rax, rbx\n";
@@ -139,7 +178,7 @@ public class Generator {
     }
 
     push("rax", true);
-    recentTerms.push(new Variable(variableType, stackSize));
+    recentTerms.push(new Variable(variableType, stackSize, 1));
   }
 
   private void generateExpression(Expression expression) {
@@ -170,6 +209,8 @@ public class Generator {
       scopes.pop();
     } else if (statement.object() instanceof StatementStop statementStop) {
       generateExpression(statementStop.expression());
+      if (recentTerms.pop().type() == VariableType.string) generateError("generation: stop subroutine not defined for type string");
+
       output += "    mov rax, 60\n";
       pop("rdi", true);
       output += "    syscall\n";
@@ -191,8 +232,10 @@ public class Generator {
 
       generateExpression(statementAssignment.expression());
       Variable variable = variables.get(statementAssignment.identifier().value());
-      variable = variable.withType(recentTerms.pop().type());
-      variables.put(statementAssignment.identifier().value(), variable);
+
+      Variable recentVariable = recentTerms.pop();
+      if (variable.type() != recentVariable.type()) generateError("generation: cannot convert from " + recentVariable.type().name() + " to " + variable.type().name());
+      if (variable.type() == VariableType.string) generateError("generation: cannot reassign string");
 
       int shiftSize = (stackSize - variable.stackLocation()) * 8;
       pop("rax", true);
@@ -202,43 +245,62 @@ public class Generator {
     } else if (statement.object() instanceof StatementPrint statementPrint) {
       generateExpression(statementPrint.expression());
 
-      output += "    mov ebx, 10\n";
-      pop("rax", true);
+      Variable recentTerm = recentTerms.pop();
+      if (recentTerm.type() == VariableType.string) {
+        output += "    mov rsi, rsp\n";
+        output += "    mov rax, 1\n";
+        output += "    mov edi, 1\n";
+        output += "    mov rdx, " + recentTerm.length()*8 + "\n";
+        output += "    syscall\n";
 
-      output += "    push 0\n";
-      output += "    push 10\n";
+        output += "    push 10\n";
+        output += "    mov rsi, rsp\n";
+        output += "    mov rax, 1\n";
+        output += "    mov edi, 1\n";
+        output += "    mov rdx, 1\n";
+        output += "    syscall\n";
 
-      output += "    cmp rax, 0\n";
-      output += "    jns l" + currLabel + "Convert\n";
-      output += "    mov rcx, 1\n";
-      output += "    neg rax\n";
+        output += "    add rsp, " + (recentTerm.length()+1)*8 + "\n";
+        stackSize -= recentTerm.length();
+      } else {
+        output += "    mov ebx, 10\n";
+        pop("rax", true);
 
-      output += "l" + currLabel + "Convert:\n";
-      output += "    div ebx\n";
+        output += "    push 0\n";
+        output += "    push 10\n";
 
-      output += "    add edx, 48\n";
-      push("rdx", true);
+        output += "    cmp rax, 0\n";
+        output += "    jns l" + currLabel + "Convert\n";
+        output += "    mov rcx, 1\n";
+        output += "    neg rax\n";
 
-      output += "    xor edx, edx\n";
-      output += "    cmp eax, 0\n";
-      output += "    jnz l" + currLabel + "Convert\n";
+        output += "l" + currLabel + "Convert:\n";
+        output += "    div ebx\n";
 
-      output += "    cmp rcx, 1\n";
-      output += "    jne l" + currLabel + "Print\n";
-      output += "    xor rcx, rcx\n";
-      output += "    push 45\n";
+        output += "    add edx, 48\n";
+        push("rdx", true);
 
-      output += "l" + currLabel + "Print:\n";
+        output += "    xor edx, edx\n";
+        output += "    cmp eax, 0\n";
+        output += "    jnz l" + currLabel + "Convert\n";
 
-      output += "    mov rsi, rsp\n";
-      output += "    mov rax, 1\n";
-      output += "    mov edi, 1\n";
-      output += "    mov rdx, 1\n";
-      output += "    syscall\n";
+        output += "    cmp rcx, 1\n";
+        output += "    jne l" + currLabel + "Print\n";
+        output += "    xor rcx, rcx\n";
+        output += "    push 45\n";
 
-      pop("rdx", true);
-      output += "    cmp dx, 0\n";
-      output += "    jnz l" + currLabel + "Print\n";
+        output += "l" + currLabel + "Print:\n";
+
+        output += "    mov rsi, rsp\n";
+        output += "    mov rax, 1\n";
+        output += "    mov edi, 1\n";
+        output += "    mov rdx, 1\n";
+        output += "    syscall\n";
+
+        pop("rdx", true);
+        output += "    cmp dx, 0\n";
+        output += "    jnz l" + currLabel + "Print\n";
+      }
 
       currLabel++;
     } else if (statement.object() instanceof Branch branch) {
@@ -294,8 +356,8 @@ public class Generator {
   }
 
 
-  private void push(String register, boolean incStackSize) {
-    output += "    push " + register + "\n";
+  private void push(String value, boolean incStackSize) {
+    output += "    push " + value + "\n";
     if (incStackSize) stackSize++;
   }
 
