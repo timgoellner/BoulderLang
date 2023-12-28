@@ -34,7 +34,7 @@ public class Parser {
     } else if (get().type() == TokenType.minus) {
       consume();
 
-      IntegerLiteral zeroIntegerLiteral = new IntegerLiteral(new Token(TokenType.integer, "0", -1, -1));
+      IntegerLiteral zeroIntegerLiteral = new IntegerLiteral(new Token(TokenType.integer, "0", get().row(), get().column()));
       Term zeroTerm = new Term(zeroIntegerLiteral);
       Expression zeroExpression = new Expression(zeroTerm);
 
@@ -186,7 +186,7 @@ public class Parser {
       Statement statement = parseStatement();
       Statement statementElse = null;
 
-      if (get().type() == TokenType.backslash) {
+      if (get() != null && get().type() == TokenType.backslash) {
         consume();
         statementElse = parseStatement();
       }

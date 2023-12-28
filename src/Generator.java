@@ -37,8 +37,7 @@ public class Generator {
 
       if (Double.parseDouble(recentToken.value()) > 4294967295d) generateError("generation: integer literal out of range 2^32-1");
 
-      output += "    mov rax, " + recentToken.value() + "\n";
-      push("rax", true);
+      push(recentToken.value(), true);
 
       recentTerms.push(new Variable(VariableType.integer, stackSize, 1));
     } else if (term.object() instanceof StringLiteral stringLiteral) {
@@ -48,18 +47,15 @@ public class Generator {
       Variable variable = new Variable(VariableType.string, stackSize+characters.length+1, characters.length);
       recentTerms.push(variable);
 
-      output += "    mov rax, 0\n";
-      push("rax", true);
+      push("0", true);
 
       for (int i = characters.length-1; i >= 0; i--) {
-        output += "    mov rax, " + ((int) characters[i]) + "\n";
-        push("rax", true);
+        push(Integer.toString((int) characters[i]), true);
       }
     } else if (term.object() instanceof BooleanLiteral booleanLiteral) {
       recentToken = booleanLiteral.bool();
 
-      output += "    mov rax, " + ((recentToken.value() == "true") ? "1" : "0") + "\n";
-      push("rax", true);
+      push(((recentToken.value() == "true") ? "1" : "0"), true);
 
       recentTerms.push(new Variable(VariableType.bool, stackSize, 1));
     } else if (term.object() instanceof Identifier identifier) {
@@ -71,14 +67,13 @@ public class Generator {
 
       Variable variable = (Variable) variableObj;
       if (variable.type() == VariableType.string) {
-        output += "    mov rax, 0\n";
-        push("rax", true);
+        push("0", true);
         
         for (int i = variable.length(); i >= 0; i--) {
-          push("QWORD [rsp + " + ((stackSize - variable.stackLocation() + i) * 8) + "]", true);
+          push("qword [rsp + " + ((stackSize - variable.stackLocation() + i) * 8) + "]", true);
         }
       } else {
-        push("QWORD [rsp + " + ((stackSize - variable.stackLocation()) * 8) + "]", true);
+        push("qword [rsp + " + ((stackSize - variable.stackLocation()) * 8) + "]", true);
       }
 
       recentTerms.push(variable.withStackLocation(stackSize));
@@ -89,20 +84,7 @@ public class Generator {
 
       if (recentTerms.peek().type() != VariableType.bool) generateError("generation: not operator is undefined for type " + recentTerms.peek().type().name());
 
-      pop("rax", true);
-
-      output += "    cmp rax, 0\n";
-      output += "    je l" + currLabel + "True\n";
-      output += "    mov rax, 0\n";
-      output += "    jmp l" + currLabel + "End\n";
-
-      output += "l" + currLabel + "True:\n";
-      output += "    mov rax, 1\n";
-
-      output += "l" + currLabel + "End:\n";
-      push("rax", true);
-
-      currLabel++;
+      output += "    xor qword [rsp], 1\n";
     }
   }
 

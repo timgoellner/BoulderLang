@@ -1,3 +1,5 @@
-set test = "hello world";
-
-print(test);
+set i = 0;
+~(i < 10000) {
+  print(i);
+  i = i + 1;
+}
