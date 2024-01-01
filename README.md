@@ -41,7 +41,7 @@ A sequence of decimal digits up to 2^32-1.
 ### String Literal
 A sequence of characters surrounded by double quotes.
 ```
-"hello world"
+"Hello world!"
 ```
 
 ### Boolean Literal
@@ -76,10 +76,10 @@ Either *Integer Literal*, *Boolean*, *Identifier*, *Parentheses* or *Negated Ter
 
 | Name          | Sign | Precedence |
 | ------------- | --   | ---------- |
-| addition      | +    | 3          |
-| subtraction   | -    | 3          |
 | multiplication| *    | 4          |
 | division      | /    | 4          |
+| addition      | +    | 3          |
+| subtraction   | -    | 3          |
 | equal         | ==   | 2          |
 | notEqual      | !=   | 2          |
 | less          | <    | 2          |
@@ -102,8 +102,8 @@ Either *Term* or *Binary Expression*.
 ### Branch
 A branch executing a *Statement* when its condition *Expression* is `true`. Optionally executes a *Statement*-Else when the condition is `false` and the *Statement* is suffixed with `\`.
 ```
-(number == 42) result = true;
-\ result = false;
+(number != -1) print(number);
+\ print("please set a number");
 ```
 
 ### Loop
@@ -112,7 +112,7 @@ A loop that executes a *Statement* if its condition *Expression* is `true`, and 
 ~(i > 0) {
   num = num*num;
   i = i - 1;
-};
+}
 ```
 
 ### Print Statement
@@ -136,7 +136,7 @@ set value = 76;
 ### Stop Statement
 A *Statement* terminating the program with an exit code given by an *Expression*.
 ```
-exit(32);
+stop(32);
 ```
 
 ### Scope
@@ -144,7 +144,7 @@ exit(32);
 ```
 {
   set code = 1;
-  exit(code);
+  print(code);
 }
 ```
 
