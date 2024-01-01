@@ -8,9 +8,10 @@ Compilation generates assembly code, compiles it with [nasm](https://nasm.us/) a
 
 ```
 $ cat main.boulder
-stop(0);
+print("Hello world!");
 $ java -cp build Main main.boulder
 $ ./main
+Hello world!
 ```
 <br>
 
