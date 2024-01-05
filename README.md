@@ -49,10 +49,23 @@ Either `true` or `false`, which are interpreted internally as `1` and `0`.
 true
 ```
 
+### Array Literal
+An initializer for an array with its length, surrounded by square brackets.
+*Note: An array can only contain integers*
+```
+[2]
+```
+
 ### Identifier
-A sequence of at least one letter or decimal digit.
+A sequence of letters, decimal digits and/or underscores.
 ```
 name
+```
+
+### Array Identifier
+A Identifier of type array, suffixed with the array offset (index) in square brackets.
+```
+array[2]
 ```
 
 ### Parentheses
@@ -68,7 +81,7 @@ A *Term* prefixed with a dash (`!`), making it `true` if its `false` and `false`
 ```
 
 ### *Term (group class)*
-Either *Integer Literal*, *Boolean*, *Identifier*, *Parentheses* or *Negated Term*.
+Either *Integer Literal*, *String Literal*, *BooleanLiteral*, *Array Literal*, *Identifier*, *Array Identifier*, *Parentheses* or *Negated Term*.
 <br><br>
 
 ### Binary Expression Types
@@ -121,7 +134,7 @@ print(34);
 ```
 
 ### Assignment Statement
-A *Statement* setting an already initialised *Identifier* equal to an *Expression*.
+A *Statement* setting an already initialised *Identifier* or *Array Identifier* equal to an *Expression*.
 ```
 value = 76;
 ```

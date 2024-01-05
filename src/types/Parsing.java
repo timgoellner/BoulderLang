@@ -34,8 +34,17 @@ public interface Parsing {
     Token bool
   ) {}
 
+  public record ArrayLiteral(
+    Term length
+  ) {}
+
   public record Identifier(
     Token identifier
+  ) {}
+
+  public record ArrayIdentifier(
+    Token identifier,
+    Expression offset
   ) {}
 
   public record Parentheses(
@@ -47,7 +56,7 @@ public interface Parsing {
   ) {}
 
   public record Term(
-    // IntegerLiteral || BooleanLiteral || Identifier || Parentheses || TermNegated
+    // IntegerLiteral || StringLiteral || BooleanLiteral || ArrayLiteral || Identifier || ArrayIdentifier || Parentheses || TermNegated
     Object object
   ) {}
 
@@ -74,8 +83,8 @@ public interface Parsing {
   ) {}
 
   public record StatementAssignment(
-    Token identifier,
-    Expression expression
+    Term identifier,
+    Expression value
   ) {}
 
   public record StatementPrint(
@@ -84,7 +93,7 @@ public interface Parsing {
 
   public record StatementSet(
     Token identifier,
-    Expression expression
+    Expression value
   ) {}
 
   public record StatementStop(

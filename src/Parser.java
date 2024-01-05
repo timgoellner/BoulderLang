@@ -13,7 +13,7 @@ public class Parser {
 
 
   private Term parseTerm() {
-    if (get() == null) generateError("parsing: expected expression");
+    if (get() == null) generateError("parsing: expected term");
 
     Object termObject = null;
 
@@ -24,7 +24,15 @@ public class Parser {
     } else if (get().type() == TokenType.bool) {
       termObject = new BooleanLiteral(consume());
     } else if (get().type() == TokenType.identifier) {
-      termObject = new Identifier(consume());
+      Token identifier = consume();
+
+      if (get() != null && get().type() == TokenType.squareBracketOpen) {
+        consume();
+        termObject = new ArrayIdentifier(identifier, parseExpression(1));
+
+        if (get() == null || get().type() != TokenType.squareBracketClosed) generateError("parsing: expected ']'");
+        consume();
+      } else termObject = new Identifier(identifier);
     } else if (get().type() == TokenType.parenthesesOpen) {
       consume();
       termObject = new Parentheses(parseExpression(1));
@@ -47,6 +55,12 @@ public class Parser {
 
       Term term = parseTerm();
       termObject = new TermNegated(term);
+    } else if (get().type() == TokenType.squareBracketOpen) {
+      consume();
+      termObject = new ArrayLiteral(parseTerm());
+
+      if (get() == null || get().type() != TokenType.squareBracketClosed) generateError("parsing: expected ']'");
+      consume();
     }
     
     if (termObject == null) generateError("parsing: expected term");
@@ -136,12 +150,12 @@ public class Parser {
       if (get() == null || get().type() != TokenType.assign) generateError("parsing: expected equal sign");
       consume();
 
-      Expression expression = parseExpression(1);
+      Expression value = parseExpression(1);
 
       if (get() == null || get().type() != TokenType.semicolon) generateError("parsing: expected ';'");
       consume();
 
-      StatementSet statementSet = new StatementSet(identifier, expression);
+      StatementSet statementSet = new StatementSet(identifier, value);
 
       return new Statement(statementSet);
     } else if (get().type() == TokenType.kwPrint) {
@@ -162,18 +176,17 @@ public class Parser {
 
       return new Statement(statementPrint);
     } else if (get().type() == TokenType.identifier) {
-      Token identifier = consume();
+      Term identifier = parseTerm();
 
       if (get() == null || get().type() != TokenType.assign) generateError("parsing: expected equal sign");
       consume();
 
-      Expression expression = parseExpression(1);
+      Expression value = parseExpression(1);
 
       if (get() == null || get().type() != TokenType.semicolon) generateError("parsing: expected ';'");
       consume();
 
-      StatementAssignment statementAssignment = new StatementAssignment(identifier, expression);
-
+      StatementAssignment statementAssignment = new StatementAssignment(identifier, value);
       return new Statement(statementAssignment);
     } else if (get().type() == TokenType.parenthesesOpen) {
       consume();
@@ -265,7 +278,7 @@ public class Parser {
     String row = (token == null) ? "EOF" : token.row() + "";
     String column = (token == null) ? "EOF" : token.column() + "";
 
-    System.out.println(row + ":" + column + ": ERROR: " + msg);
+    System.out.println(row + ":" + (Integer.parseInt(column)+1) + ": ERROR: " + msg);
     System.exit(1);
   }
 }

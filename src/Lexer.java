@@ -22,7 +22,7 @@ public class Lexer {
     while (raw.length() > 0) {
       char currChar = consume();
 
-      if (Character.isAlphabetic(currChar) ||  Character.isDigit(currChar) || inString) buffer += currChar;
+      if (Character.isAlphabetic(currChar) ||  Character.isDigit(currChar) || inString || currChar == '_') buffer += currChar;
       else if (buffer.length() > 0) {
         switch (buffer) {
           case "stop":
@@ -113,6 +113,12 @@ public class Lexer {
           break;
         case ')':
           tokens.add(new Token(TokenType.parenthesesClosed, null, row, column));
+          break;
+        case '[':
+          tokens.add(new Token(TokenType.squareBracketOpen, null, row, column));
+          break;
+        case ']':
+          tokens.add(new Token(TokenType.squareBracketClosed, null, row, column));
           break;
         case '{':
           tokens.add(new Token(TokenType.curlyBracketOpen, null, row, column));

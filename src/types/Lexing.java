@@ -22,6 +22,8 @@ public interface Lexing {
     assign,
     parenthesesOpen,
     parenthesesClosed,
+    squareBracketOpen,
+    squareBracketClosed,
     curlyBracketOpen,
     curlyBracketClosed,
     plus,

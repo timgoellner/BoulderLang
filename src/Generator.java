@@ -58,11 +58,21 @@ public class Generator {
       push(((recentToken.value() == "true") ? "1" : "0"), true);
 
       recentTerms.push(new Variable(VariableType.bool, stackSize, 1));
+    } else if (term.object() instanceof ArrayLiteral arrayLiteral) {
+      Object lengthObject = arrayLiteral.length().object();
+
+      if (!(lengthObject instanceof IntegerLiteral)) generateError("generation: needs integer, got " + lengthObject.getClass().getSimpleName());
+
+      int arrayLength = Integer.parseInt(((IntegerLiteral) lengthObject).integer().value());
+
+      output += "    sub rsp, " + String.valueOf(arrayLength*8) + "\n";
+      stackSize += arrayLength;
+
+      recentTerms.push(new Variable(VariableType.array, stackSize, arrayLength));  
     } else if (term.object() instanceof Identifier identifier) {
       recentToken = identifier.identifier();
 
       Object variableObj = variables.get(recentToken.value());
-      
       if (variableObj == null) generateError("generation: undeclared variable '" + recentToken.value() + "'");
 
       Variable variable = (Variable) variableObj;
@@ -77,6 +87,23 @@ public class Generator {
       }
 
       recentTerms.push(variable.withStackLocation(stackSize));
+    } else if (term.object() instanceof ArrayIdentifier arrayIdentifier) {
+      recentToken = arrayIdentifier.identifier();
+
+      Object variableObj = variables.get(recentToken.value());
+      if (variableObj == null) generateError("generation: undeclared variable '" + recentToken.value() + "'");
+      Variable variable = (Variable) variableObj;
+
+      generateExpression(arrayIdentifier.offset());
+      Variable offset = recentTerms.pop();
+      if (offset.type() != VariableType.integer) generateError("generation: cannot convert from " + offset.type().name() + " to " + VariableType.integer.name());
+      pop("rax", true);
+      output += "    mov rbx, 8\n";
+      output += "    mul rbx\n";
+
+      push("qword [rsp + " + ((stackSize - variable.stackLocation()) * 8) + " + rax]", true);
+
+      recentTerms.push(new Variable(VariableType.integer, stackSize, 1));
     } else if (term.object() instanceof Parentheses parentheses) {
       generateExpression(parentheses.expression());
     } else if (term.object() instanceof TermNegated termNegated) {
@@ -100,7 +127,7 @@ public class Generator {
     if (expressionLeft.type() != expressionRight.type()) generateError("generation: " + expressionBinary.type().name() + " operator is undefined for types " + expressionLeft.type().name() + " and " + expressionRight.type().name());
 
     VariableType variableType = expressionLeft.type();
-    if (variableType == VariableType.string) generateError("generation: " + expressionBinary.type().name() + " operator is undefined for type " + variableType.name());
+    if (variableType == VariableType.string || variableType == VariableType.array) generateError("generation: " + expressionBinary.type().name() + " operator is undefined for type " + variableType.name());
 
     boolean mathType = true;
     switch (expressionBinary.type()) {
@@ -131,7 +158,6 @@ public class Generator {
         output += "    cmp rax, 1\n";
         output += "    je l" + currLabel + "True\n";
       } else {
-
         output += "    cmp rax, rbx\n";
 
         if (expressionBinary.type() == ExpressionBinaryType.equal) output += "    je l" + currLabel + "True\n";
@@ -191,7 +217,7 @@ public class Generator {
       scopes.pop();
     } else if (statement.object() instanceof StatementStop statementStop) {
       generateExpression(statementStop.expression());
-      if (recentTerms.pop().type() == VariableType.string) generateError("generation: stop subroutine not defined for type string");
+      if (recentTerms.pop().type() == VariableType.string) generateError("generation: stop subroutine not defined for type " + VariableType.string.name());
 
       output += "    mov rax, 60\n";
       pop("rdi", true);
@@ -201,33 +227,66 @@ public class Generator {
 
       if (variables.containsKey(statementSet.identifier().value())) generateError("generation: variable already declared '" + statementSet.identifier().value() + "'");
 
-      if (statementSet.expression() == null) {
+      if (statementSet.value() == null) {
         output += "    mov rax, 0\n";
         push("rax", true);
-      } else generateExpression(statementSet.expression());
+      } else generateExpression(statementSet.value());
 
       variables.put(statementSet.identifier().value(), recentTerms.pop());
     } else if (statement.object() instanceof StatementAssignment statementAssignment) {
-      recentToken = statementAssignment.identifier();
+      Object identifierObject = statementAssignment.identifier().object();
 
-      if (!variables.containsKey(statementAssignment.identifier().value())) generateError("generation: undeclared variable '" + statementAssignment.identifier().value() + "'");
+      if (identifierObject instanceof Identifier identifier) {
+        recentToken = identifier.identifier();
 
-      generateExpression(statementAssignment.expression());
-      Variable variable = variables.get(statementAssignment.identifier().value());
+        if (!variables.containsKey(recentToken.value())) generateError("generation: undeclared variable '" + recentToken.value() + "'");
+        Variable variable = variables.get(identifier.identifier().value());
 
-      Variable recentVariable = recentTerms.pop();
-      if (variable.type() != recentVariable.type()) generateError("generation: cannot convert from " + recentVariable.type().name() + " to " + variable.type().name());
-      if (variable.type() == VariableType.string) generateError("generation: cannot reassign string");
+        generateExpression(statementAssignment.value());
+        Variable value = recentTerms.pop();
+        if (variable.type() != value.type()) generateError("generation: cannot convert from " + value.type().name() + " to " + variable.type().name());
+        if (variable.type() == VariableType.string || variable.type() == VariableType.array) generateError("generation: cannot reassign " + variable.type().name());
 
-      int shiftSize = (stackSize - variable.stackLocation()) * 8;
-      pop("rax", true);
-      output += "    add rsp, " + shiftSize + "\n";
-      push("rax", false);
-      output += "    sub rsp, " + (shiftSize - 8) + "\n";
+        int shiftSize = (stackSize - variable.stackLocation()) * 8;
+        pop("rax", true);
+        output += "    add rsp, " + shiftSize + "\n";
+        push("rax", false);
+        output += "    sub rsp, " + (shiftSize - 8) + "\n";
+      } else if (identifierObject instanceof ArrayIdentifier arrayIdentifier) {
+        recentToken = arrayIdentifier.identifier();
+
+        if (!variables.containsKey(recentToken.value())) generateError("generation: undeclared variable '" + recentToken.value() + "'");
+        Variable variable = variables.get(arrayIdentifier.identifier().value());
+
+        generateExpression(arrayIdentifier.offset());
+        Variable offset = recentTerms.pop();
+        if (offset.type() != VariableType.integer) generateError("generation: cannot convert from " + offset.type().name() + " to " + VariableType.integer.name());
+        pop("rax", true);
+        output += "    mov rbx, 8\n";
+        output += "    mul rbx\n";
+        output += "    mov rdx, rax\n";
+        output += "    xor rax, rax\n";
+        
+        generateExpression(statementAssignment.value());
+        Variable value = recentTerms.pop();
+        if (value.type() != VariableType.integer) generateError("generation: cannot convert from " + value.type().name() + " to " + VariableType.integer.name()); 
+      
+        int shiftSize = (stackSize - variable.stackLocation()) * 8;
+        pop("rax", true);
+        output += "    add rsp, " + shiftSize + "\n";
+        output += "    add rsp, rdx\n";
+        push("rax", false);
+        output += "    sub rsp, " + (shiftSize - 8) + "\n";
+        output += "    sub rsp, rdx\n";
+        output += "    xor rdx, rdx\n";
+      }
     } else if (statement.object() instanceof StatementPrint statementPrint) {
       generateExpression(statementPrint.expression());
 
       Variable recentTerm = recentTerms.pop();
+
+      if (recentTerm.type() == VariableType.array) generateError("generation: cannot print array");
+
       if (recentTerm.type() == VariableType.string) {
         output += "    mov rsi, rsp\n";
         output += "    mov rax, 1\n";
