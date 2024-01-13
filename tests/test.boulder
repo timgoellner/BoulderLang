@@ -1,7 +1,6 @@
-set num = 2;
+set array = [5];
 
-#(num == 1) {
-  print("hey");
-#}
+array[2] = 23;
 
-print(num);
+set tmp = array[2];
+print(tmp);

@@ -100,8 +100,7 @@ public class Generator {
       Variable offset = recentTerms.pop();
       if (offset.type() != VariableType.integer) generateError("generation: cannot convert from " + offset.type().name() + " to " + VariableType.integer.name());
       pop("rax", true);
-      output += "    mov rbx, 8\n";
-      output += "    mul rbx\n";
+      output += "    lea rax, [rax * 8]\n";
 
       push("qword [rsp + " + ((stackSize - variable.stackLocation()) * 8) + " + rax]", true);
 
@@ -240,8 +239,7 @@ public class Generator {
       if (variables.containsKey(statementSet.identifier().value())) generateError("generation: variable already declared '" + statementSet.identifier().value() + "'");
 
       if (statementSet.value() == null) {
-        output += "    mov rax, 0\n";
-        push("rax", true);
+        push("0", true);
         recentTerms.push(new Variable(VariableType.integer, stackSize, 1));
       } else generateExpression(statementSet.value());
 
@@ -260,11 +258,9 @@ public class Generator {
         if (variable.type() != value.type()) generateError("generation: cannot convert from " + value.type().name() + " to " + variable.type().name());
         if (variable.type() == VariableType.string || variable.type() == VariableType.array) generateError("generation: cannot reassign " + variable.type().name());
 
-        int shiftSize = (stackSize - variable.stackLocation()) * 8;
+        int shiftSize = (stackSize - variable.stackLocation() - 1) * 8;
         pop("rax", true);
-        output += "    add rsp, " + shiftSize + "\n";
-        push("rax", false);
-        output += "    sub rsp, " + (shiftSize - 8) + "\n";
+        output += "    mov [rsp + " + shiftSize + "], rax\n";
       } else if (identifierObject instanceof ArrayIdentifier arrayIdentifier) {
         recentToken = arrayIdentifier.identifier();
 
@@ -275,22 +271,15 @@ public class Generator {
         Variable offset = recentTerms.pop();
         if (offset.type() != VariableType.integer) generateError("generation: cannot convert from " + offset.type().name() + " to " + VariableType.integer.name());
         pop("rax", true);
-        output += "    mov rbx, 8\n";
-        output += "    mul rbx\n";
-        output += "    mov rcx, rax\n";
-        output += "    xor rax, rax\n";
+        output += "    lea rcx, [rax * 8]\n";
         
         generateExpression(statementAssignment.value());
         Variable value = recentTerms.pop();
         if (value.type() != VariableType.integer) generateError("generation: cannot convert from " + value.type().name() + " to " + VariableType.integer.name()); 
       
-        int shiftSize = (stackSize - variable.stackLocation()) * 8;
+        int shiftSize = (stackSize - variable.stackLocation() - 1) * 8;
         pop("rax", true);
-        output += "    add rsp, " + shiftSize + "\n";
-        output += "    add rsp, rcx\n";
-        push("rax", false);
-        output += "    sub rsp, " + (shiftSize - 8) + "\n";
-        output += "    sub rsp, rcx\n";
+        output += "    mov [rsp + " + shiftSize + " + rcx], rax\n";
         output += "    xor rcx, rcx\n";
       }
     } else if (statement.object() instanceof StatementPrint statementPrint) {
