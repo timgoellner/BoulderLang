@@ -1,13 +1,9 @@
-set array = [5];
+set seed = "##########";
 
-array[0] = 21;
-array[1] = 32;
-array[2] = 46;
-array[3] = 58;
-array[4] = 62;
+set i = 0;
+~(i < 2) {
+  print(seed);
+  set nextLine = seed;
 
-set ARRAY_INDEX = 0;
-~(ARRAY_INDEX < 5) {
-  print(array[ARRAY_INDEX]);
-  ARRAY_INDEX = ARRAY_INDEX + 1;
+  i = i + 1;
 }

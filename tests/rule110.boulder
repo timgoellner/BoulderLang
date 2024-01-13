@@ -1,0 +1,40 @@
+set seed = "                                                                                                                                                                                                       #";
+set seedLen = 200;
+
+set lastLine = seed;
+
+set i;
+~(true) {
+  print(lastLine);
+  i = 0;
+
+  set nextLine = lastLine;
+  ~(i < seedLen) {
+    set before = lastLine[i-1];
+    set middle = lastLine[i];
+    set after = lastLine[i+1];
+
+    (i == 0) before = lastLine[seedLen-1];
+    \ (i+1 == seedLen) after = lastLine[0];
+
+    (before == 35 & middle == 35 & after == 35) nextLine[i] = 32;
+    \ (before == 35 & middle == 35 & after == 32) nextLine[i] = 35;
+    \ (before == 35 & middle == 32 & after == 35) nextLine[i] = 35;
+    \ (before == 35 & middle == 32 & after == 32) nextLine[i] = 32;
+    \ (before == 32 & middle == 35 & after == 35) nextLine[i] = 35;
+    \ (before == 32 & middle == 35 & after == 32) nextLine[i] = 35;
+    \ (before == 32 & middle == 32 & after == 35) nextLine[i] = 35;
+    \ nextLine[i] = 32;
+
+    i = i + 1;
+  }
+
+  set j;
+  ~(j < seedLen) {
+    lastLine[j] = nextLine[j];
+    j = j + 1;
+  }
+
+  set timer = 12000000;
+  ~(timer > 0) timer = timer - 1;
+}
