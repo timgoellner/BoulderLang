@@ -3,6 +3,7 @@ import types.Parsing.*;
 import types.Generating.*;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.Arrays;
@@ -44,14 +45,15 @@ public class Generator {
       recentToken = stringLiteral.string();
 
       char[] characters = recentToken.value().toCharArray();
-      Variable variable = new Variable(VariableType.string, stackSize+characters.length+1, characters.length);
-      recentTerms.push(variable);
 
       push("0", true);
 
       for (int i = characters.length-1; i >= 0; i--) {
         push(Integer.toString((int) characters[i]), true);
       }
+
+      Variable variable = new Variable(VariableType.string, stackSize, characters.length);
+      recentTerms.push(variable);
     } else if (term.object() instanceof BooleanLiteral booleanLiteral) {
       recentToken = booleanLiteral.bool();
 
@@ -79,7 +81,7 @@ public class Generator {
       if (variable.type() == VariableType.string) {
         push("0", true);
         
-        for (int i = variable.length(); i >= 0; i--) {
+        for (int i = variable.length()-1; i >= 0; i--) {
           push("qword [rsp + " + ((stackSize - variable.stackLocation() + i) * 8) + "]", true);
         }
       } else {
@@ -208,11 +210,21 @@ public class Generator {
 
       int popCount = variables.size() - scopes.lastElement();
 
-      output += "    add rsp, " + popCount * 8 + "\n";
-      stackSize -= popCount;
+      Object[] variableArray = (Object[]) variables.keySet().toArray();
+      List<Object> popVariables = Arrays.asList(variableArray).subList(variableArray.length-popCount, variableArray.length);
 
-      Object[] variableArray = variables.keySet().toArray();
-      if (popCount > 0) variables.keySet().removeAll(Arrays.asList(variableArray).subList(variableArray.length-popCount, variableArray.length-1));
+      int dataPopCount = 0;
+      for (Object popVariable : popVariables) {
+        Variable variable = variables.get(popVariable);
+        dataPopCount += variable.length();
+
+        if (variable.type() == VariableType.string) dataPopCount ++;
+      }
+
+      output += "    add rsp, " + dataPopCount * 8 + "\n";
+      stackSize -= dataPopCount;
+
+      if (popCount > 0) variables.keySet().removeAll(popVariables);
 
       scopes.pop();
     } else if (statement.object() instanceof StatementStop statementStop) {
@@ -230,6 +242,7 @@ public class Generator {
       if (statementSet.value() == null) {
         output += "    mov rax, 0\n";
         push("rax", true);
+        recentTerms.push(new Variable(VariableType.integer, stackSize, 1));
       } else generateExpression(statementSet.value());
 
       variables.put(statementSet.identifier().value(), recentTerms.pop());
@@ -264,7 +277,7 @@ public class Generator {
         pop("rax", true);
         output += "    mov rbx, 8\n";
         output += "    mul rbx\n";
-        output += "    mov rdx, rax\n";
+        output += "    mov rcx, rax\n";
         output += "    xor rax, rax\n";
         
         generateExpression(statementAssignment.value());
@@ -274,11 +287,11 @@ public class Generator {
         int shiftSize = (stackSize - variable.stackLocation()) * 8;
         pop("rax", true);
         output += "    add rsp, " + shiftSize + "\n";
-        output += "    add rsp, rdx\n";
+        output += "    add rsp, rcx\n";
         push("rax", false);
         output += "    sub rsp, " + (shiftSize - 8) + "\n";
-        output += "    sub rsp, rdx\n";
-        output += "    xor rdx, rdx\n";
+        output += "    sub rsp, rcx\n";
+        output += "    xor rcx, rcx\n";
       }
     } else if (statement.object() instanceof StatementPrint statementPrint) {
       generateExpression(statementPrint.expression());
@@ -301,8 +314,10 @@ public class Generator {
         output += "    mov rdx, 1\n";
         output += "    syscall\n";
 
-        output += "    add rsp, " + (recentTerm.length()+1)*8 + "\n";
-        stackSize -= recentTerm.length();
+        output += "    add rsp, " + (recentTerm.length()+2)*8 + "\n";
+        stackSize -= recentTerm.length()+1;
+
+        output += "    xor rdx, rdx\n";
       } else {
         output += "    mov ebx, 10\n";
         pop("rax", true);
@@ -357,11 +372,13 @@ public class Generator {
       output += "    jmp l" + label + "False\n";
 
       output += "l" + label + "True:\n";
-      generateStatement(branch.statement());
+
+      generateSaveStatement(branch.statement());
+
       output += "    jmp l" + label + "End\n";
 
       output += "l" + label + "False:\n";
-      if (branch.statementElse() != null) generateStatement(branch.statementElse());
+      if (branch.statementElse() != null) generateSaveStatement(branch.statementElse());
 
       output += "l" + label + "End:\n";
     } else if (statement.object() instanceof Loop loop) {
@@ -410,5 +427,20 @@ public class Generator {
   private void generateError(String msg) {
     System.out.println(recentToken.row() + ":" + recentToken.column() + ": ERROR: " + msg);
     System.exit(1);
+  }
+
+  private void generateSaveStatement(Statement statement) {
+    int prevStackSize = stackSize;
+    generateStatement(statement);
+    if (stackSize != prevStackSize) {
+      System.out.println(recentToken.type().name() + " at " + recentToken.row() + " | " + stackSize + " != " + prevStackSize);
+
+      if (stackSize > prevStackSize) {
+        Object[] variableArray = variables.keySet().toArray();
+        variables.keySet().remove(variableArray[variableArray.length-1]);
+      }
+
+      stackSize = prevStackSize;
+    }
   }
 }
