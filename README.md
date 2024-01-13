@@ -166,8 +166,8 @@ Either *Set Statement*, *Assignment Statement*, *Stop Statement*, *Branch*, *Sco
 
 
 ### Comment
-Everything after a '#' in a line is ignored by the compiler.
-Multi-line comments start with a '#\*' and end with a '\*#'.
+Everything after a `#` in a line is ignored by the compiler.
+Multi-line comments start with a `#*` and end with a `*#`.
 ```
 # This is a comment
 
