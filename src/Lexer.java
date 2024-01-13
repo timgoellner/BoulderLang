@@ -147,6 +147,14 @@ public class Lexer {
         case '"':
           inString = true;
           break;
+        case '#':
+          if (get() == '*') {
+            consume();
+            while (raw.length() > 0 && (currChar != '*' || get() != '#')) currChar = consume();
+            if (raw.length() > 0) consume();
+          }
+          else while (currChar != '\n') currChar = consume();
+          break;
       }
 
       if (currChar == '\n') { row++; column = 0; }

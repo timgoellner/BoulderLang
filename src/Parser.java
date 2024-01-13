@@ -276,9 +276,9 @@ public class Parser {
   private void generateError(String msg) {
     Token token = get();
     String row = (token == null) ? "EOF" : token.row() + "";
-    String column = (token == null) ? "EOF" : token.column() + "";
+    String column = (token == null) ? "EOF" : token.column() + 1 + "";
 
-    System.out.println(row + ":" + (Integer.parseInt(column)+1) + ": ERROR: " + msg);
+    System.out.println(row + ":" + column + ": ERROR: " + msg);
     System.exit(1);
   }
 }

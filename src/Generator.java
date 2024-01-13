@@ -373,12 +373,12 @@ public class Generator {
 
       output += "l" + label + "True:\n";
 
-      generateSaveStatement(branch.statement());
+      generateStatement(branch.statement());
 
       output += "    jmp l" + label + "End\n";
 
       output += "l" + label + "False:\n";
-      if (branch.statementElse() != null) generateSaveStatement(branch.statementElse());
+      if (branch.statementElse() != null) generateStatement(branch.statementElse());
 
       output += "l" + label + "End:\n";
     } else if (statement.object() instanceof Loop loop) {
@@ -427,20 +427,5 @@ public class Generator {
   private void generateError(String msg) {
     System.out.println(recentToken.row() + ":" + recentToken.column() + ": ERROR: " + msg);
     System.exit(1);
-  }
-
-  private void generateSaveStatement(Statement statement) {
-    int prevStackSize = stackSize;
-    generateStatement(statement);
-    if (stackSize != prevStackSize) {
-      System.out.println(recentToken.type().name() + " at " + recentToken.row() + " | " + stackSize + " != " + prevStackSize);
-
-      if (stackSize > prevStackSize) {
-        Object[] variableArray = variables.keySet().toArray();
-        variables.keySet().remove(variableArray[variableArray.length-1]);
-      }
-
-      stackSize = prevStackSize;
-    }
   }
 }

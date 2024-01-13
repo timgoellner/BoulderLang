@@ -1,9 +1,7 @@
-set seed = "##########";
+set num = 2;
 
-set i = 0;
-~(i < 2) {
-  print(seed);
-  set nextLine = seed;
+#(num == 1) {
+  print("hey");
+#}
 
-  i = i + 1;
-}
+print(num);

@@ -164,3 +164,15 @@ stop(32);
 ### *Statement (group class)*
 Either *Set Statement*, *Assignment Statement*, *Stop Statement*, *Branch*, *Scope* or *Loop*.
 
+
+### Comment
+Everything after a '#' in a line is ignored by the compiler.
+Multi-line comments start with a '#\*' and end with a '\*#'.
+```
+# This is a comment
+
+#*
+  This is a multi-
+  line comment
+*#
+```
