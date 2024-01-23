@@ -20,7 +20,7 @@ set i;
     (before == 35 & middle == 35 & after == 35) nextLine[i] = 32;
     \ (before == 35 & middle == 35 & after == 32) nextLine[i] = 35;
     \ (before == 35 & middle == 32 & after == 35) nextLine[i] = 35;
-    \ (before == 35 & middle == 32 & after == 32) nextLine[i] = 32;
+    \ (before == 35 & middle == 32 & after == 32) nextLine[i] = 35;
     \ (before == 32 & middle == 35 & after == 35) nextLine[i] = 35;
     \ (before == 32 & middle == 35 & after == 32) nextLine[i] = 35;
     \ (before == 32 & middle == 32 & after == 35) nextLine[i] = 35;

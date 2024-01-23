@@ -351,6 +351,9 @@ public class Generator {
     } else if (statement.object() instanceof Branch branch) {
       generateExpression(branch.condition());
 
+      Variable condition = recentTerms.pop();
+      if (condition.type() != VariableType.bool) generateError("generation: cannot convert from " + condition.type().name() + " to " + VariableType.bool.name());
+
       int label = currLabel;
       currLabel++;
 
@@ -376,6 +379,7 @@ public class Generator {
 
       output += "l" + label + "Start:\n";
       generateExpression(loop.condition());
+      recentTerms.pop();
 
       pop("rax", true);
 

@@ -1,6 +1,9 @@
-set array = [5];
+set num = 657572;
 
-array[2] = 23;
+set quotient = 23 / 2;
+set modulus = num - quotient * 2;
 
-set tmp = array[2];
-print(tmp);
+(modulus == 0) print("even");
+\ print("odd"); 
+
+~(num < 2) stop(2);
