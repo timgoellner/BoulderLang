@@ -1,9 +1,7 @@
-set num = 657572;
+set num = 2575;
 
-set quotient = 23 / 2;
-set modulus = num - quotient * 2;
-
-(modulus == 0) print("even");
-\ print("odd"); 
-
-~(num < 2) stop(2);
+set i = num;
+~(i > num - 100) {
+	print(i);
+	i = i - 1;
+}

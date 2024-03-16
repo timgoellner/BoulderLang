@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 
@@ -30,6 +31,13 @@ public class Main {
 
     Generator generator = new Generator(nodeRoot);
     String output = generator.generate();
+
+    try {
+      Files.createDirectories(Paths.get("out"));
+    } catch (IOException error) {
+      System.out.print("error creating output directory");
+      return;
+    }
 
     Path outFilePath = Path.of("out/output.asm");
     try {
