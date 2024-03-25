@@ -130,6 +130,10 @@ public class Lexer {
           tokens.add(new Token(TokenType.plus, null, row, column));
           break;
         case '-':
+          if (get() == '>') {
+              tokens.add(new Token(TokenType.arrow, null, row, column));
+              consume();
+          }
           tokens.add(new Token(TokenType.minus, null, row, column));
           break;
         case '*':
