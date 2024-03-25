@@ -178,6 +178,22 @@ public class Parser {
     } else if (get().type() == TokenType.identifier) {
       Term identifier = parseTerm();
 
+      if (get().type() == TokenType.parenthesesOpen) {
+        consume();
+
+        List<Statement> parameters = new ArrayList<Identifier>();
+        while(get().type() == TokenType.identifier) {
+          parameters.add(new Identifier(consume()));
+          if (get().type() == TokenType.comma) consume();
+          if (get().type() != TokenType.parenthesesClosed && get().type() != TokenType.identifier) generateError("parsing: expected ')'");
+        }
+
+        Statement statement = parseStatement();
+
+        Method method = new Method(identifier, parameters, statement);
+        return new Statement(method);
+      }
+
       if (get() == null || get().type() != TokenType.assign) generateError("parsing: expected equal sign");
       consume();
 
@@ -223,6 +239,12 @@ public class Parser {
       Loop loop = new Loop(expression, statement);
 
       return new Statement(loop);
+    } else if (get().type() == TokenType.arrow) {
+      consume();
+      Expression expression = parseExpression(1);
+
+      StatementReturn statementReturn = new StatementReturn(expression);
+      return new Statement(statementReturn);
     }
 
     return null;
