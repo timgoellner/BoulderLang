@@ -154,6 +154,9 @@ public class Lexer {
         case ',':
           tokens.add(new Token(TokenType.comma, null, row, column));
           break;
+        case '°':
+          tokens.add(new Token(TokenType.degreeSign, null, row, column));
+          break;
         case '#':
           if (get() == '*') {
             consume();
