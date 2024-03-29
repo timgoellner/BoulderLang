@@ -180,18 +180,22 @@ public class Parser {
 
       if (get().type() == TokenType.parenthesesOpen) {
         consume();
+        if (!(identifier.object() instanceof Identifier)) generateError("parsing: invalid method call");
 
-        List<Statement> parameters = new ArrayList<Identifier>();
-        while(get().type() == TokenType.identifier) {
-          parameters.add(new Identifier(consume()));
-          if (get().type() == TokenType.comma) consume();
-          if (get().type() != TokenType.parenthesesClosed && get().type() != TokenType.identifier) generateError("parsing: expected ')'");
+        List<Expression> parameters = new ArrayList<Expression>();
+        while(true) {
+          parameters.add(parseExpression(1));
+          if (get().type() == TokenType.parenthesesClosed) break;
+          else if (get().type() != TokenType.comma) generateError("parsing: expected ')'");
+          consume();
         }
+        consume();
 
-        Statement statement = parseStatement();
+        if (get() == null || get().type() != TokenType.semicolon) generateError("parsing: expected ';'");
+        consume();
 
-        Method method = new Method(identifier, parameters, statement);
-        return new Statement(method);
+        StatementCall statementCall = new StatementCall(((Identifier) identifier.object()).identifier(), parameters);
+        return new Statement(statementCall);
       }
 
       if (get() == null || get().type() != TokenType.assign) generateError("parsing: expected equal sign");
@@ -243,8 +247,32 @@ public class Parser {
       consume();
       Expression expression = parseExpression(1);
 
+      if (get() == null || get().type() != TokenType.semicolon) generateError("parsing: expected ';'");
+      consume();
+
       StatementReturn statementReturn = new StatementReturn(expression);
       return new Statement(statementReturn);
+    } else if (get().type() == TokenType.degreeSign) {
+      consume();
+
+      if (get() == null || get().type() != TokenType.identifier) generateError("parsing: expected identifier");
+      Token identifier = consume();
+
+      if (get() == null || get().type() != TokenType.parenthesesOpen) generateError("parsing: expected '('");
+      consume();
+
+      List<Token> parameters = new ArrayList<Token>();
+      while(get().type() == TokenType.identifier) {
+        parameters.add(consume());
+        if (get().type() == TokenType.comma) consume();
+        if (get().type() != TokenType.parenthesesClosed && get().type() != TokenType.identifier) generateError("parsing: expected ')'");
+      }
+      consume();
+
+      Statement statement = parseStatement();
+
+      Method method = new Method(identifier, parameters, statement);
+      return new Statement(method);
     }
 
     return null;

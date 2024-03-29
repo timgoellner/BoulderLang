@@ -1,7 +1,5 @@
-set num = 2575;
-
-set i = num;
-~(i > num - 100) {
-	print(i);
-	i = i - 1;
+°sum(a, b) {
+  -> a + b;
 }
+
+sum(2, 3);

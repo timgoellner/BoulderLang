@@ -34,7 +34,10 @@ public interface Lexing {
     ampersand,
     pipe,
     backslash,
-    tilde
+    tilde,
+    arrow,
+    comma,
+    degreeSign
   }
 
   public record Token(

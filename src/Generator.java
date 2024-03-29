@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class Generator {
   private Root root;
@@ -16,6 +17,8 @@ public class Generator {
   private int stackSize;
   //          name
   private Map<String, Variable> variables;
+  //          name  , parameterCount
+  private Map<String, Integer> methods;
   private Stack<Variable> recentTerms;
   private Token recentToken;
   //            initial variables
@@ -26,6 +29,7 @@ public class Generator {
     this.output = "section .text\n    global _start\n_start:\n";
 
     this.variables = new LinkedHashMap<String, Variable>();
+    this.methods = new HashMap<String, Integer>();
     this.recentTerms = new Stack<Variable>();
     this.recentToken = null;
     this.scopes = new Stack<Integer>();
@@ -390,6 +394,35 @@ public class Generator {
       output += "    jmp l" + label + "Start\n";
 
       output += "l" + label + "End:\n";
+    } else if (statement.object() instanceof Method method) {
+      String labelName = method.identifier().value();
+
+      methods.put(labelName, method.parameters().size());
+
+      output += "    jmp " + labelName + "End\n";
+      output += labelName  + "Start:\n";
+
+      generateStatement(method.statement());
+
+      output += labelName + "End:\n";
+    } else if (statement.object() instanceof StatementCall statementCall) {
+      String callName = statementCall.identifier().value();
+      int callParameters = statementCall.parameters().size();
+      Integer parameters = methods.get(callName);
+
+      if (parameters == null) generateError("generation: undeclared method '" + callName + "'");
+      if (parameters.intValue() != callParameters) generateError("generation: method is defined for " + parameters.intValue() + " parameters, but got " + callParameters);
+      
+      int index = 0;
+      for (Expression expression : statementCall.parameters()) {
+        generateExpression(expression);
+        Variable parameter = recentTerms.pop();
+        if (parameter.type() != VariableType.integer) generateError("generation: cannot convert from " + parameter.type().name() + " to " + VariableType.integer.name());
+        
+        variables.put(callName + index++, parameter);
+      }
+
+
     }
   }
 

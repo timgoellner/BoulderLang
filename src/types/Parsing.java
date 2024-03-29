@@ -104,8 +104,23 @@ public interface Parsing {
     List<Statement> statements
   ) {}
 
+  public record Method(
+    Token identifier,
+    List<Token> parameters,
+    Statement statement
+  ) {}
+
+  public record StatementCall(
+    Token identifier,
+    List<Expression> parameters
+  ) {}
+
+  public record StatementReturn(
+    Expression expression
+  ) {}
+
   public record Statement(
-    // StatementSet || StatementPrint || StatementStop || StatementAssignment || Scope || Branch || Loop
+    // StatementSet || StatementPrint || StatementStop || StatementAssignment || Scope || Branch || Loop || Method || StatementReturn || StatementCall
     Object object
   ) {}
 
