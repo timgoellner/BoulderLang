@@ -131,8 +131,9 @@ public class Lexer {
           break;
         case '-':
           if (get() == '>') {
-              tokens.add(new Token(TokenType.arrow, null, row, column));
-              consume();
+            consume();
+            tokens.add(new Token(TokenType.arrow, null, row, column));
+            break;
           }
           tokens.add(new Token(TokenType.minus, null, row, column));
           break;

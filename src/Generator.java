@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -15,10 +16,10 @@ public class Generator {
 
   private int currLabel;
   private int stackSize;
-  //          name
+  //          name (variableName or method@variableName)
   private Map<String, Variable> variables;
-  //          name  , parameterCount
-  private Map<String, Integer> methods;
+  //          name  , parameters
+  private Map<String, List<String>> methods;
   private Stack<Variable> recentTerms;
   private Token recentToken;
   //            initial variables
@@ -29,7 +30,7 @@ public class Generator {
     this.output = "section .text\n    global _start\n_start:\n";
 
     this.variables = new LinkedHashMap<String, Variable>();
-    this.methods = new HashMap<String, Integer>();
+    this.methods = new HashMap<String, List<String>>();
     this.recentTerms = new Stack<Variable>();
     this.recentToken = null;
     this.scopes = new Stack<Integer>();
@@ -211,23 +212,7 @@ public class Generator {
         generateStatement(childStatement);
       }
 
-      int popCount = variables.size() - scopes.lastElement();
-
-      Object[] variableArray = (Object[]) variables.keySet().toArray();
-      List<Object> popVariables = Arrays.asList(variableArray).subList(variableArray.length-popCount, variableArray.length);
-
-      int dataPopCount = 0;
-      for (Object popVariable : popVariables) {
-        Variable variable = variables.get(popVariable);
-        dataPopCount += variable.length();
-
-        if (variable.type() == VariableType.string) dataPopCount ++;
-      }
-
-      output += "    add rsp, " + dataPopCount * 8 + "\n";
-      stackSize -= dataPopCount;
-
-      if (popCount > 0) variables.keySet().removeAll(popVariables);
+      popVariables(variables.size() - scopes.lastElement());
 
       scopes.pop();
     } else if (statement.object() instanceof StatementStop statementStop) {
@@ -396,33 +381,57 @@ public class Generator {
       output += "l" + label + "End:\n";
     } else if (statement.object() instanceof Method method) {
       String labelName = method.identifier().value();
+      if (methods.containsKey(labelName)) generateError("generation: method already declared '" + labelName + "'");
 
-      methods.put(labelName, method.parameters().size());
+      List<String> parameters = new ArrayList<String>();
+      for (Token parameter : method.parameters()) {
+        parameters.add(parameter.value());
+
+        if (variables.containsKey(parameter.value())) generateError("generation: variable already declared '" + parameter.value() + "'");
+        push("0", true);
+        variables.put(parameter.value(), new Variable(VariableType.integer, stackSize, 1));
+
+      }
+      methods.put(labelName, parameters);
+      //push("0", true);
 
       output += "    jmp " + labelName + "End\n";
       output += labelName  + "Start:\n";
 
+      stackSize++;
       generateStatement(method.statement());
+      stackSize--;
 
+      output += "    ret\n";
       output += labelName + "End:\n";
+
+      for (Token parameter : method.parameters()) {
+        Variable variable = variables.remove(parameter.value());
+        variables.put(labelName + "@" + parameter.value(), variable);
+      }
     } else if (statement.object() instanceof StatementCall statementCall) {
       String callName = statementCall.identifier().value();
-      int callParameters = statementCall.parameters().size();
-      Integer parameters = methods.get(callName);
+      List<Expression> callParameters = statementCall.parameters();
+      List<String> parameters = methods.get(callName);
 
       if (parameters == null) generateError("generation: undeclared method '" + callName + "'");
-      if (parameters.intValue() != callParameters) generateError("generation: method is defined for " + parameters.intValue() + " parameters, but got " + callParameters);
-      
+      if (parameters.size() != callParameters.size()) generateError("generation: method is defined for " + parameters.size() + " parameters, but got " + callParameters);
+
       int index = 0;
-      for (Expression expression : statementCall.parameters()) {
+      for (Expression expression : callParameters) {
         generateExpression(expression);
         Variable parameter = recentTerms.pop();
         if (parameter.type() != VariableType.integer) generateError("generation: cannot convert from " + parameter.type().name() + " to " + VariableType.integer.name());
-        
-        variables.put(callName + index++, parameter);
+      
+        int variableLocation = variables.get(callName + "@" + parameters.get(index)).stackLocation();
+        int shiftSize = (stackSize - variableLocation - 1) * 8;
+        pop("rax", true);
+        output += "    mov [rsp + " + shiftSize + "], rax\n";
+
+        index++;
       }
 
-
+      output += "    call " + callName + "Start\n";
     }
   }
 
@@ -453,5 +462,23 @@ public class Generator {
   private void generateError(String msg) {
     System.out.println(recentToken.row() + ":" + recentToken.column() + ": ERROR: " + msg);
     System.exit(1);
+  }
+
+  private void popVariables(int popCount) {
+    Object[] variableArray = (Object[]) variables.keySet().toArray();
+    List<Object> popVariables = Arrays.asList(variableArray).subList(variableArray.length-popCount, variableArray.length);
+
+    int dataPopCount = 0;
+    for (Object popVariable : popVariables) {
+      Variable variable = variables.get(popVariable);
+      dataPopCount += variable.length();
+
+      if (variable.type() == VariableType.string) dataPopCount ++;
+    }
+
+    output += "    add rsp, " + dataPopCount * 8 + "\n";
+    stackSize -= dataPopCount;
+
+    if (popCount > 0) variables.keySet().removeAll(popVariables);
   }
 }
