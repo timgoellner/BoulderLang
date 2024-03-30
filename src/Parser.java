@@ -184,9 +184,10 @@ public class Parser {
 
         List<Expression> parameters = new ArrayList<Expression>();
         while(true) {
+          if (get().type() == TokenType.parenthesesClosed) break;
           parameters.add(parseExpression(1));
           if (get().type() == TokenType.parenthesesClosed) break;
-          else if (get().type() != TokenType.comma) generateError("parsing: expected ')'");
+          if (get().type() != TokenType.comma) generateError("parsing: expected ')'");
           consume();
         }
         consume();

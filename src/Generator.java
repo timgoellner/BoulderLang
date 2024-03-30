@@ -87,10 +87,10 @@ public class Generator {
         push("0", true);
         
         for (int i = variable.length()-1; i >= 0; i--) {
-          push("qword [rsp + " + ((stackSize - variable.stackLocation() + i) * 8) + "]", true);
+          push("qword [rbp - " + ((variable.stackLocation() - i) * 8) + "]", true);
         }
       } else {
-        push("qword [rsp + " + ((stackSize - variable.stackLocation()) * 8) + "]", true);
+        push("qword [rbp - " + (variable.stackLocation() * 8) + "]", true);
       }
 
       recentTerms.push(variable.withStackLocation(stackSize));
@@ -107,7 +107,7 @@ public class Generator {
       pop("rax", true);
       output += "    lea rax, [rax * 8]\n";
 
-      push("qword [rsp + " + ((stackSize - variable.stackLocation()) * 8) + " + rax]", true);
+      push("qword [rbp - " + (variable.stackLocation() * 8) + " + rax]", true);
 
       recentTerms.push(new Variable(VariableType.integer, stackSize, 1));
     } else if (term.object() instanceof Parentheses parentheses) {
@@ -247,9 +247,8 @@ public class Generator {
         if (variable.type() != value.type()) generateError("generation: cannot convert from " + value.type().name() + " to " + variable.type().name());
         if (variable.type() == VariableType.string || variable.type() == VariableType.array) generateError("generation: cannot reassign " + variable.type().name());
 
-        int shiftSize = (stackSize - variable.stackLocation() - 1) * 8;
         pop("rax", true);
-        output += "    mov [rsp + " + shiftSize + "], rax\n";
+        output += "    mov [rbp - " + variable.stackLocation() * 8 + "], rax\n";
       } else if (identifierObject instanceof ArrayIdentifier arrayIdentifier) {
         recentToken = arrayIdentifier.identifier();
 
@@ -266,9 +265,8 @@ public class Generator {
         Variable value = recentTerms.pop();
         if (value.type() != VariableType.integer) generateError("generation: cannot convert from " + value.type().name() + " to " + VariableType.integer.name()); 
       
-        int shiftSize = (stackSize - variable.stackLocation() - 1) * 8;
         pop("rax", true);
-        output += "    mov [rsp + " + shiftSize + " + rcx], rax\n";
+        output += "    mov [rbp - " + (variable.stackLocation() * 8) + " + rcx], rax\n";
         output += "    xor rcx, rcx\n";
       }
     } else if (statement.object() instanceof StatementPrint statementPrint) {
@@ -390,17 +388,13 @@ public class Generator {
         if (variables.containsKey(parameter.value())) generateError("generation: variable already declared '" + parameter.value() + "'");
         push("0", true);
         variables.put(parameter.value(), new Variable(VariableType.integer, stackSize, 1));
-
       }
       methods.put(labelName, parameters);
-      //push("0", true);
 
       output += "    jmp " + labelName + "End\n";
       output += labelName  + "Start:\n";
 
-      stackSize++;
       generateStatement(method.statement());
-      stackSize--;
 
       output += "    ret\n";
       output += labelName + "End:\n";
@@ -424,9 +418,8 @@ public class Generator {
         if (parameter.type() != VariableType.integer) generateError("generation: cannot convert from " + parameter.type().name() + " to " + VariableType.integer.name());
       
         int variableLocation = variables.get(callName + "@" + parameters.get(index)).stackLocation();
-        int shiftSize = (stackSize - variableLocation - 1) * 8;
         pop("rax", true);
-        output += "    mov [rsp + " + shiftSize + "], rax\n";
+        output += "    mov [rbp - " + (variableLocation * 8) + "], rax\n";
 
         index++;
       }
@@ -436,6 +429,8 @@ public class Generator {
   }
 
   public String generate() {
+    output += "    mov rbp, rsp\n";
+
     for (Statement statement : root.statements()) {
       output += "    ; " + statement.object().getClass().getSimpleName() + "\n";
       generateStatement(statement);

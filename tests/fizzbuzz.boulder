@@ -1,0 +1,39 @@
+set num = 1;
+
+set remainder;
+set remainder3;
+set remainder5;
+
+set quotient;
+set product;
+
+
+°modulo(divisor) {
+  quotient = num / divisor;
+  product = quotient * divisor;
+  remainder = num - product;
+}
+
+°moduloWrapper() {
+  modulo(3);
+  remainder3 = remainder;
+
+  modulo(5);
+  remainder5 = remainder;
+}
+
+
+~(true) {
+  moduloWrapper();
+
+  (remainder3 == 0 & remainder5 == 0) print("FizzBuzz");
+  \ (remainder3 == 0) print("Fizz");
+  \ (remainder5 == 0) print("Buzz");
+  \ print(num);
+
+  num = num + 1;
+
+
+  set timer = 100000000;
+  ~(timer > 0) timer = timer - 1;
+}
