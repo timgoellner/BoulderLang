@@ -1,14 +1,1 @@
-> num;
-> tst;
-
-°sum() {
-  tst = 2;
-  -> tst;
-}
-
-°test() {
-  num = sum();
-}
-
-test();
-stop(num);
+print("Hello world!");

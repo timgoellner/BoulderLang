@@ -18,7 +18,7 @@ Hello world!
 ## An Example
 
 ```
-set number = 15;
+> number = 15;
 
 (number > 20) stop(0);
 \ (number > 10) {
@@ -82,7 +82,7 @@ A *Term* prefixed with a dash (`!`), making it `true` if its `false` and `false`
 ```
 
 ### *Term (group class)*
-Either *Integer Literal*, *String Literal*, *BooleanLiteral*, *Array Literal*, *Identifier*, *Array Identifier*, *Parentheses* or *Negated Term*.
+Either *Integer Literal*, *String Literal*, *BooleanLiteral*, *Array Literal*, *Identifier*, *Array Identifier*, *Parentheses*, *Negated Term* or *Call*.
 <br><br>
 
 ### Binary Expression Types
@@ -140,16 +140,22 @@ A *Statement* setting an already initialised *Identifier* or *Array Identifier* 
 value = 76;
 ```
 
-### Set Statement
-A *Statement* setting a not already initialised *Identifier* equal to an *Expression*, prefixed with `set`.
+### Initialize Statement
+A *Statement* setting a not already initialised *Identifier* equal to an *Expression*, prefixed with `>`.
 ```
-set value = 76;
+> value = 76;
 ```
 
 ### Stop Statement
 A *Statement* terminating the program with an exit code given by an *Expression*.
 ```
 stop(32);
+```
+
+### Return Statement
+A *Expression* prefixed with `->`, which sets the return value of a *Method* and returns from it.
+```
+-> a + b;
 ```
 
 ### Scope
@@ -161,8 +167,22 @@ stop(32);
 }
 ```
 
+### Method
+A *Identifier* prefixed with `°` and suffixed with more *Identifiers* surrounded with braces, which represent the parameters of the method. A *Method* contains one *Statement*, which will be executet using a *Call*. The method parameters and the return value are restricted to integers. The *Statement* of a *Method* cannot contain a *Initialize Statement* or another *Method*.
+```
+°sum(a, b) {
+  -> a + b;
+}
+```
+
+### Call
+A *Identifier* suffixed with more *Identifiers* surrounded with braces, which represent the parameters of the method that is called.
+```
+sum(2, 3);
+```
+
 ### *Statement (group class)*
-Either *Set Statement*, *Assignment Statement*, *Stop Statement*, *Branch*, *Scope* or *Loop*.
+Either *Initialize Statement*, *Assignment Statement*, *Stop Statement*, *Return Statement*, *Branch*, *Scope*, *Loop*, *Method* or *Call*.
 
 
 ### Comment
