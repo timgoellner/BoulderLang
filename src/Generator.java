@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 
 public class Generator {
   private Root root;
@@ -20,6 +19,7 @@ public class Generator {
   private Map<String, Variable> variables;
   //          name  , parameters
   private Map<String, List<String>> methods;
+  private boolean inMethod;
   private Stack<Variable> recentTerms;
   private Token recentToken;
   //            initial variables
@@ -30,7 +30,7 @@ public class Generator {
     this.output = "section .text\n    global _start\n_start:\n";
 
     this.variables = new LinkedHashMap<String, Variable>();
-    this.methods = new HashMap<String, List<String>>();
+    this.methods = new LinkedHashMap<String, List<String>>();
     this.recentTerms = new Stack<Variable>();
     this.recentToken = null;
     this.scopes = new Stack<Integer>();
@@ -108,8 +108,33 @@ public class Generator {
       output += "    lea rax, [rax * 8]\n";
 
       push("qword [rbp - " + (variable.stackLocation() * 8) + " + rax]", true);
-
       recentTerms.push(new Variable(VariableType.integer, stackSize, 1));
+    } else if (term.object() instanceof Call call) {
+      String callName = call.identifier().value();
+      List<Expression> callParameters = call.parameters();
+      List<String> parameters = methods.get(callName);
+
+      if (parameters == null) generateError("generation: undeclared method '" + callName + "'");
+      if (parameters.size() != callParameters.size()) generateError("generation: method is defined for " + parameters.size() + " parameters, but got " + callParameters.size());
+
+      int index = 0;
+      for (Expression expression : callParameters) {
+        generateExpression(expression);
+        Variable parameter = recentTerms.pop();
+        if (parameter.type() != VariableType.integer) generateError("generation: cannot convert from " + parameter.type().name() + " to " + VariableType.integer.name());
+      
+        int variableLocation = variables.get(callName + "@" + parameters.get(index)).stackLocation();
+        pop("rax", true);
+        output += "    mov [rbp - " + (variableLocation * 8) + "], rax\n";
+
+        index++;
+      }
+
+      output += "    call " + callName + "Start\n";
+
+      int variableLocation = variables.get(callName + "@->").stackLocation();
+      push("qword [rbp - " + (variableLocation * 8) + "]", true);
+      recentTerms.push(variables.get(callName + "@->"));
     } else if (term.object() instanceof Parentheses parentheses) {
       generateExpression(parentheses.expression());
     } else if (term.object() instanceof TermNegated termNegated) {
@@ -224,6 +249,8 @@ public class Generator {
       output += "    syscall\n";
     } else if (statement.object() instanceof StatementSet statementSet) {
       recentToken = statementSet.identifier();
+
+      if (inMethod) generateError("generation: cannot initialise variables inside a method");
 
       if (variables.containsKey(statementSet.identifier().value())) generateError("generation: variable already declared '" + statementSet.identifier().value() + "'");
 
@@ -381,6 +408,8 @@ public class Generator {
       String labelName = method.identifier().value();
       if (methods.containsKey(labelName)) generateError("generation: method already declared '" + labelName + "'");
 
+      if (inMethod) generateError("generation: cannot define nested method");
+
       List<String> parameters = new ArrayList<String>();
       for (Token parameter : method.parameters()) {
         parameters.add(parameter.value());
@@ -389,12 +418,22 @@ public class Generator {
         push("0", true);
         variables.put(parameter.value(), new Variable(VariableType.integer, stackSize, 1));
       }
+
+      push("0", true);
+      variables.put(labelName + "@->", new Variable(VariableType.integer, stackSize, 1));
+
       methods.put(labelName, parameters);
 
       output += "    jmp " + labelName + "End\n";
       output += labelName  + "Start:\n";
 
+      int prevStart = stackSize;
+
+      inMethod = true;
       generateStatement(method.statement());
+      inMethod = false;
+
+      if (prevStart < stackSize) popVariables(1);
 
       output += "    ret\n";
       output += labelName + "End:\n";
@@ -403,9 +442,9 @@ public class Generator {
         Variable variable = variables.remove(parameter.value());
         variables.put(labelName + "@" + parameter.value(), variable);
       }
-    } else if (statement.object() instanceof StatementCall statementCall) {
-      String callName = statementCall.identifier().value();
-      List<Expression> callParameters = statementCall.parameters();
+    } else if (statement.object() instanceof Call call) {
+      String callName = call.identifier().value();
+      List<Expression> callParameters = call.parameters();
       List<String> parameters = methods.get(callName);
 
       if (parameters == null) generateError("generation: undeclared method '" + callName + "'");
@@ -425,6 +464,23 @@ public class Generator {
       }
 
       output += "    call " + callName + "Start\n";
+    } else if (statement.object() instanceof StatementReturn statementReturn) {
+      if (!inMethod)generateError("generation: return statement is only defined inside of methods");
+
+      String methodName = methods.keySet().toArray()[methods.size() - 1].toString();
+
+      if (statementReturn.expression() != null) {
+        generateExpression(statementReturn.expression());
+        Variable returnVariable = recentTerms.pop();
+
+        if (returnVariable.type() != VariableType.integer) generateError("generation: cannot convert from " + returnVariable.type().name() + " to " + VariableType.integer.name());
+
+        int variableLocation = variables.get(methodName + "@->").stackLocation();
+        pop("rax", true);
+        output += "    mov [rbp - " + (variableLocation * 8) + "], rax\n";
+      }
+
+      output += "    ret\n";
     }
   }
 

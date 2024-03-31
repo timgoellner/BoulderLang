@@ -1,5 +1,14 @@
-°sum(a, b) {
-  print(a + b);
+set num;
+set tst;
+
+°sum() {
+  tst = 2;
+  -> tst;
 }
 
-sum(2, 3);
+°test() {
+  num = sum();
+}
+
+test();
+stop(num);

@@ -164,7 +164,7 @@ public class Lexer {
             while (raw.length() > 0 && (currChar != '*' || get() != '#')) currChar = consume();
             if (raw.length() > 0) consume();
           }
-          else while (currChar != '\n') currChar = consume();
+          else while (currChar != '\n' && raw.length() > 0) currChar = consume();
           break;
       }
 

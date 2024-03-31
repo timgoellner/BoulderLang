@@ -56,7 +56,7 @@ public interface Parsing {
   ) {}
 
   public record Term(
-    // IntegerLiteral || StringLiteral || BooleanLiteral || ArrayLiteral || Identifier || ArrayIdentifier || Parentheses || TermNegated
+    // IntegerLiteral || StringLiteral || BooleanLiteral || ArrayLiteral || Identifier || ArrayIdentifier || Parentheses || TermNegated || Call
     Object object
   ) {}
 
@@ -110,7 +110,7 @@ public interface Parsing {
     Statement statement
   ) {}
 
-  public record StatementCall(
+  public record Call(
     Token identifier,
     List<Expression> parameters
   ) {}

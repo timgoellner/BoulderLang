@@ -1,6 +1,5 @@
 set num = 1;
 
-set remainder;
 set remainder3;
 set remainder5;
 
@@ -11,15 +10,12 @@ set product;
 °modulo(divisor) {
   quotient = num / divisor;
   product = quotient * divisor;
-  remainder = num - product;
+  -> num - product;
 }
 
 °moduloWrapper() {
-  modulo(3);
-  remainder3 = remainder;
-
-  modulo(5);
-  remainder5 = remainder;
+  remainder3 = modulo(3);
+  remainder5 = modulo(5);
 }
 
 

@@ -32,6 +32,20 @@ public class Parser {
 
         if (get() == null || get().type() != TokenType.squareBracketClosed) generateError("parsing: expected ']'");
         consume();
+      } else if (get() != null && get().type() == TokenType.parenthesesOpen) {
+        consume();
+
+        List<Expression> parameters = new ArrayList<Expression>();
+        while(true) {
+          if (get().type() == TokenType.parenthesesClosed) break;
+          parameters.add(parseExpression(1));
+          if (get().type() == TokenType.parenthesesClosed) break;
+          if (get().type() != TokenType.comma) generateError("parsing: expected ')'");
+          consume();
+        }
+        consume();
+
+        termObject = new Call(identifier, parameters);
       } else termObject = new Identifier(identifier);
     } else if (get().type() == TokenType.parenthesesOpen) {
       consume();
@@ -178,25 +192,11 @@ public class Parser {
     } else if (get().type() == TokenType.identifier) {
       Term identifier = parseTerm();
 
-      if (get().type() == TokenType.parenthesesOpen) {
-        consume();
-        if (!(identifier.object() instanceof Identifier)) generateError("parsing: invalid method call");
-
-        List<Expression> parameters = new ArrayList<Expression>();
-        while(true) {
-          if (get().type() == TokenType.parenthesesClosed) break;
-          parameters.add(parseExpression(1));
-          if (get().type() == TokenType.parenthesesClosed) break;
-          if (get().type() != TokenType.comma) generateError("parsing: expected ')'");
-          consume();
-        }
-        consume();
-
+      if (identifier.object() instanceof Call call) {
         if (get() == null || get().type() != TokenType.semicolon) generateError("parsing: expected ';'");
         consume();
 
-        StatementCall statementCall = new StatementCall(((Identifier) identifier.object()).identifier(), parameters);
-        return new Statement(statementCall);
+        return new Statement(call);
       }
 
       if (get() == null || get().type() != TokenType.assign) generateError("parsing: expected equal sign");
@@ -246,7 +246,9 @@ public class Parser {
       return new Statement(loop);
     } else if (get().type() == TokenType.arrow) {
       consume();
-      Expression expression = parseExpression(1);
+
+      Expression expression = null;
+      if (get().type() != TokenType.semicolon) expression = parseExpression(1);
 
       if (get() == null || get().type() != TokenType.semicolon) generateError("parsing: expected ';'");
       consume();
