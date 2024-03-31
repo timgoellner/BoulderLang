@@ -29,10 +29,6 @@ public class Lexer {
             tokens.add(new Token(TokenType.kwStop, null, row, column));
             buffer = "";
             break;
-          case "set":
-            tokens.add(new Token(TokenType.kwSet, null, row, column));
-            buffer = "";
-            break;
           case "print":
             tokens.add(new Token(TokenType.kwPrint, null, row, column));
             buffer = "";

@@ -91,7 +91,7 @@ public interface Parsing {
     Expression expression
   ) {}
 
-  public record StatementSet(
+  public record StatementInitialize(
     Token identifier,
     Expression value
   ) {}

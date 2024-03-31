@@ -247,19 +247,19 @@ public class Generator {
       output += "    mov rax, 60\n";
       pop("rdi", true);
       output += "    syscall\n";
-    } else if (statement.object() instanceof StatementSet statementSet) {
-      recentToken = statementSet.identifier();
+    } else if (statement.object() instanceof StatementInitialize statementInitialize) {
+      recentToken = statementInitialize.identifier();
 
       if (inMethod) generateError("generation: cannot initialise variables inside a method");
 
-      if (variables.containsKey(statementSet.identifier().value())) generateError("generation: variable already declared '" + statementSet.identifier().value() + "'");
+      if (variables.containsKey(statementInitialize.identifier().value())) generateError("generation: variable already declared '" + statementInitialize.identifier().value() + "'");
 
-      if (statementSet.value() == null) {
+      if (statementInitialize.value() == null) {
         push("0", true);
         recentTerms.push(new Variable(VariableType.integer, stackSize, 1));
-      } else generateExpression(statementSet.value());
+      } else generateExpression(statementInitialize.value());
 
-      variables.put(statementSet.identifier().value(), recentTerms.pop());
+      variables.put(statementInitialize.identifier().value(), recentTerms.pop());
     } else if (statement.object() instanceof StatementAssignment statementAssignment) {
       Object identifierObject = statementAssignment.identifier().object();
 

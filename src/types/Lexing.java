@@ -3,7 +3,6 @@ package types;
 public interface Lexing {
   public enum TokenType {
     kwStop,
-    kwSet,
     kwPrint,
 
     integer,

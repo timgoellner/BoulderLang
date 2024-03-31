@@ -149,7 +149,7 @@ public class Parser {
       StatementStop statementStop = new StatementStop(expression);
 
       return new Statement(statementStop);
-    } else if (get().type() == TokenType.kwSet) {
+    } else if (get().type() == TokenType.greater) {
       consume();
 
       if (get() == null || get().type() != TokenType.identifier) generateError("parsing: expected identifier");
@@ -157,8 +157,8 @@ public class Parser {
 
       if (get()!= null && get().type() == TokenType.semicolon) {
         consume();
-        StatementSet statementSet = new StatementSet(identifier, null);
-        return new Statement(statementSet);
+        StatementInitialize statementInitialize = new StatementInitialize(identifier, null);
+        return new Statement(statementInitialize);
       }
 
       if (get() == null || get().type() != TokenType.assign) generateError("parsing: expected equal sign");
@@ -169,9 +169,9 @@ public class Parser {
       if (get() == null || get().type() != TokenType.semicolon) generateError("parsing: expected ';'");
       consume();
 
-      StatementSet statementSet = new StatementSet(identifier, value);
+      StatementInitialize statementInitialize = new StatementInitialize(identifier, value);
 
-      return new Statement(statementSet);
+      return new Statement(statementInitialize);
     } else if (get().type() == TokenType.kwPrint) {
       consume();
 

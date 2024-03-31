@@ -1,5 +1,5 @@
-set num;
-set tst;
+> num;
+> tst;
 
 °sum() {
   tst = 2;

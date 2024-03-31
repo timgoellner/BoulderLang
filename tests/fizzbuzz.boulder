@@ -1,10 +1,10 @@
-set num = 1;
+> num = 1;
 
-set remainder3;
-set remainder5;
+> remainder3;
+> remainder5;
 
-set quotient;
-set product;
+> quotient;
+> product;
 
 
 °modulo(divisor) {
@@ -30,6 +30,6 @@ set product;
   num = num + 1;
 
 
-  set timer = 100000000;
+  > timer = 100000000;
   ~(timer > 0) timer = timer - 1;
 }
