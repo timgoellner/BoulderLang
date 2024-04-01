@@ -1,11 +1,11 @@
-set a = 0;
-set b = 1;
+> a = 0;
+> b = 1;
 
-set num = 40;
-set cnt = 0;
+> num = 40;
+> cnt = 0;
 
 ~(cnt < num) {
-  set tmp = a;
+  > tmp = a;
   a = b;
   b = tmp + b;
 

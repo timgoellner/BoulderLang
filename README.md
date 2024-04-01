@@ -22,7 +22,7 @@ Hello world!
 
 (number > 20) stop(0);
 \ (number > 10) {
-  set code = 1;
+  > code = 1;
   stop(code);
 } \ stop(2);
 ```
@@ -162,7 +162,7 @@ A *Expression* prefixed with `->`, which sets the return value of a *Method* and
 *Statements* surrounded with curly braces (`{}`), having local variables, which cannot be accessed globally.
 ```
 {
-  set code = 1;
+  > code = 1;
   print(code);
 }
 ```

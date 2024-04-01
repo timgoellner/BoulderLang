@@ -1,18 +1,18 @@
-set seed = "                                                                                                                                                                                                       #";
-set seedLen = 200;
+> seed = "                                                                                                                                                                                                       #";
+> seedLen = 200;
 
-set lastLine = seed;
+> lastLine = seed;
 
-set i;
+> i;
 ~(true) {
   print(lastLine);
   i = 0;
 
-  set nextLine = lastLine;
+  > nextLine = lastLine;
   ~(i < seedLen) {
-    set before = lastLine[i-1];
-    set middle = lastLine[i];
-    set after = lastLine[i+1];
+    > before = lastLine[i-1];
+    > middle = lastLine[i];
+    > after = lastLine[i+1];
 
     (i == 0) before = lastLine[seedLen-1];
     \ (i+1 == seedLen) after = lastLine[0];
@@ -29,12 +29,12 @@ set i;
     i = i + 1;
   }
 
-  set j;
+  > j;
   ~(j < seedLen) {
     lastLine[j] = nextLine[j];
     j = j + 1;
   }
 
-  set timer = 12000000;
+  > timer = 12000000;
   ~(timer > 0) timer = timer - 1;
 }
