@@ -82,7 +82,7 @@ A *Term* prefixed with a dash (`!`), making it `true` if its `false` and `false`
 ```
 
 ### *Term (group class)*
-Either *Integer Literal*, *String Literal*, *BooleanLiteral*, *Array Literal*, *Identifier*, *Array Identifier*, *Parentheses*, *Negated Term* or *Call*.
+Either *Integer Literal*, *String Literal*, *BooleanLiteral*, *Array Literal*, *Identifier*, *Array Identifier*, *Parentheses* or *Negated Term*.
 <br><br>
 
 ### Binary Expression Types
