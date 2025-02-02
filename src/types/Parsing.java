@@ -120,7 +120,7 @@ public interface Parsing {
   ) {}
 
   public record Statement(
-    // StatementSet || StatementPrint || StatementStop || StatementAssignment || Scope || Branch || Loop || Method || StatementReturn || StatementCall
+    // StatementSet || StatementPrint || StatementStop || StatementAssignment || Scope || Branch || Loop || Method || StatementReturn || Call
     Object object
   ) {}
 

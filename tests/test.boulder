@@ -1,1 +1,9 @@
-print("Hello world!");
+> a = 5;
+> constant = 10;
+
+~(a > 0) {
+  constant = constant / a;
+  print(constant);
+
+  a = a - 1;
+}
