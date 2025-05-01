@@ -4,7 +4,7 @@ Simle Compiler, which compiles to x86 64-bit nasm style assembly. <br>
 **This language is a work in progress. Everything can change at any time, so use it at your own risk.**
 <br>
 ## Usage
-Compilation generates assembly code, compiles it with [nasm](https://nasm.us/) and links it with the [GNU linker](https://www.gnu.org/software/binutils/), <br>so make sure you have it in you `$PATH`.
+Compilation generates assembly code, compiles it with [nasm](https://nasm.us/) and links it with the [GNU linker](https://www.gnu.org/software/binutils/), <br>so make sure you have it in your `$PATH`.
 
 ```
 $ cat main.boulder
